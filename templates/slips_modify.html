@@ -1,0 +1,236 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<script>
+    function sum()
+    {
+        trContents=document.body.getElementsByTagName('tr');
+        if(trContents.length>1)
+        {
+            var total_sum = 0;
+            for(i=1;i<trContents.length;i++)
+            {
+                trContents[i].getElementsByTagName('td')[5].getElementsByTagName('input')[0].value = trContents[i].getElementsByTagName('td')[4].getElementsByTagName('input')[0].value * trContents[i].getElementsByTagName('td')[2].getElementsByTagName('input')[0].value
+                total_sum = parseFloat(total_sum) + parseFloat(trContents[i].getElementsByTagName('td')[5].getElementsByTagName('input')[0].value)
+            }
+            document.getElementById('total_amount').value = total_sum
+        }
+    }
+    function load_data()
+    {
+        slip_no = document.getElementById("slip_no").value
+        var params = []
+        params.push({
+	        "csrfmiddlewaretoken": Cookies.get('csrftoken')
+	    });
+	    params.push({
+	        "slip_no": slip_no
+	    });
+        var xhttp = new XMLHttpRequest();
+        xhttp.open("POST", "{% url 'slips_app:get_slip_jobs' %}", true);
+        xhttp.setRequestHeader("Content-type", "application/json");
+	    xhttp.setRequestHeader("X-CSRFToken", Cookies.get('csrftoken'));
+        xhttp.send(JSON.stringify(params));
+        xhttp.onreadystatechange = function(){
+	        if(this.readyState === 4 && this.status === 200) {
+	            var response_data = JSON.parse(this.response)
+	            slip_jobs = response_data["slip_jobs"]
+	            slip = response_data["slip"]
+	            for(i=0; i<slip_jobs.length; i++)
+	            {
+	                document.getElementById("job_name".concat(String(i))).value = slip_jobs[i]["job_name"]
+	                document.getElementById("quantity".concat(String(i))).value = slip_jobs[i]["quantity"]
+	                document.getElementById("item".concat(String(i))).value = slip_jobs[i]["item"]
+	                document.getElementById("rate".concat(String(i))).value = slip_jobs[i]["rate"]
+	                document.getElementById("amount".concat(String(i))).value = slip_jobs[i]["amount"]
+	                if(slip_jobs[i]["fb"])
+	                    document.getElementById("fb".concat(String(i))).checked = true
+	            }
+	            document.getElementById("date").value = slip["date"]
+	            document.getElementById("client").value = slip["client_name"]
+	            document.getElementById("total_amount").value = slip["amount"]
+	            if(slip["completed"])
+	                document.getElementById("completed").checked = true
+	            if(slip["billed"])
+	                document.getElementById("billed").checked = true
+	        }
+	    }
+    }
+function print_slip()
+{
+    slip_no = document.getElementById("slip_no").value
+    var params = []
+    params.push({
+	    "csrfmiddlewaretoken": Cookies.get('csrftoken')
+	});
+	params.push({
+	    "slip_no": slip_no
+	});
+    var xhttp = new XMLHttpRequest();
+    xhttp.open("POST", "{% url 'slips_app:print_slip_jobs' %}", true);
+    xhttp.setRequestHeader("Content-type", "application/json");
+	xhttp.setRequestHeader("X-CSRFToken", Cookies.get('csrftoken'));
+    xhttp.send(JSON.stringify(params));
+    xhttp.onreadystatechange = function() {
+	    if (this.readyState === 4 && this.status === 200) {
+	        if (this.getResponseHeader('content-type')=='application/pdf'){
+	            var blob = new Blob([this.response], { type: 'image/pdf' });
+	            let a = document.createElement("a");
+                a.style = "display: none";
+                document.body.appendChild(a);
+	            let url = window.URL.createObjectURL(blob);
+                a.href = url;
+                a.download = 'slip.pdf';
+                a.click();
+		        alert('Slip Downloaded')
+                window.URL.revokeObjectURL(url);
+	            location.reload();
+	        }
+	        else
+	        {
+	            document.open();
+	            document.write(this.responseText);
+	            document.close();
+	        };
+        };
+    };
+}
+
+
+
+
+
+
+
+
+
+</script>
+<div class="container-fluid" style="height: 91.5%;padding-top: 1rem;background-color: #E6E6E6;">
+    <form action="{% url 'slips_app:submit_slip_modify' %}" method="post">
+        {% csrf_token %}
+        <div class="form-group row">
+            <label class="control-label col-md-2" for="slip_no" style="font-weight: bold;">Slip No:</label>
+            <div class="col-md-4">
+                <select class="form-control" id="slip_no" name="slip_no">
+                    {% if slips %}
+                    {% for slip in slips %}
+                    <option selected value="{{slip.slip_no}}">{{ slip.slip_no }}--{{ slip.client_name.client_name }}
+                    </option>
+                    {% endfor %}
+                    {% endif %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button name="button" type="button" value="Get_Details" class="btn btn-primary" onclick="load_data()">
+                    Get Details
+                </button>
+            </div>
+            <div class="col-md-2">
+                <button type="button" name="button_2" value="Print" class="btn btn-primary" onclick="print_slip()">
+                    Print
+                </button>
+            </div>
+        </div>
+        <div class="form-group row">
+            <label class="control-label col-md-2" for="date" style="font-weight: bold;">Date:</label>
+            <div class="col-md-4">
+                {% if datetime %}
+                <input autocomplete="off" class="form-control" id="date" name="date" placeholder="Date"
+                       required type="date" value="{{datetime}}">
+                {% else %}
+                <input autocomplete="off" class="form-control" id="date" name="date" placeholder="Date"
+                       required type="date">
+                {% endif %}
+            </div>
+            <label class="control-label col-md-2" for="client" style="font-weight: bold;">Client Name:</label>
+            <div class="col-md-4">
+                <select class="form-control" id="client" name="client_name">
+                    {% if clients %}
+                    {% for client in clients %}
+                    <option selected value="{{client.client_name}}">{{ client.client_name }}--{{ client.nickname }}
+                    </option>
+                    {% endfor %}
+                    {% endif %}
+                </select>
+            </div>
+        </div>
+        <table style="width:100%">
+            <tr>
+                <th>Job Name</th>
+                <th>Paper</th>
+                <th>Qty</th>
+                <th>F/B</th>
+                <th>Rate</th>
+                <th>Amount</th>
+            </tr>
+            {% for i in "0123456789" %}
+            <tr style="line-height: 1">
+                <td height="5"><input autocomplete="off" class="form-control" id="job_name{{i}}" maxlength="25"
+                                      name="job_name"
+                                      placeholder="Job Name" style="line-height: 1" type="text"></td>
+                <td height="5"><select autocomplete="off" class="form-control" id="item{{i}}"
+                                       name="item_name" style="line-height: 1; height: calc(2.25rem - 2px)">
+                    {% if items %}
+                    {% for item in items %}
+                    <option selected>{{ item.item_name }}</option>
+                    {% endfor %}
+                    {% endif %}
+                </select></td>
+                <td height="5"><input autocomplete="off" class="form-control" id="quantity{{i}}" name="quantity"
+                                      placeholder="Quantity" style="line-height: 1" oninput="sum()" type="number"
+                                      value=0></td>
+                <td height="5"><input name="fb" autocomplete="off" type="hidden" value="False"><input
+                        class="form-control" autocomplete="off" id="fb{{i}}" name="fb" value="True"
+                        style="line-height: 1, margin: 0 auto; float: left;"
+                        type="checkbox"/><br>
+                </td>
+                <td height="5"><input autocomplete="off" class="form-control" step="any" id="rate{{i}}" oninput="sum()"
+                                      name="rate"
+                                      placeholder="Rate" style="line-height: 1" type="number" value=0></td>
+                <td height="5"><input autocomplete="off" class="form-control" readonly="readonly" id="amount{{i}}"
+                                      name="amount" placeholder="Amount" style="line-height: 1" type="number"></td>
+            </tr>
+            {% endfor %}
+        </table>
+        <div class="form-group row" style="margin:20px;">
+            <label class="control-label  col-md-1" for="completed" style="font-weight: bold;">Completed:</label>
+            <div class=" col-md-1">
+                <input name="completed" autocomplete="off" type="hidden" value="False"><input
+                    class="form-control" autocomplete="off" id="completed" name="completed" value="True"
+                    style="margin-top: 7px;"
+                    type="checkbox"/>
+            </div>
+            <label class="control-label col-md-1" for="billed"
+                   style="font-weight: bold;">Billed:</label>
+            <div class="col-md-1">
+                <input name="billed" autocomplete="off" type="hidden" value="False"><input
+                    class="form-control" autocomplete="off" id="billed" name="billed" value="True"
+                    style="margin-top: 6px;" onclick="check_completed()"
+                    type="checkbox"/>
+            </div>
+            <label class="control-label col-md-2" for="total_amount" style="font-weight: bold;">Total Amount:</label>
+            <div class="col-md-2">
+                <input autocomplete="off" class="form-control" readonly="readonly" id="total_amount" name="total_amount"
+                       type="number" onload="sum()">
+            </div>
+            <div class="col-md-1">
+                <button
+                        class="btn btn-primary btn-block" type="submit">Save
+                </button
+                >
+            </div>
+
+        </div>
+    </form>
+    {% if error_message %}
+    <div class="alert alert-danger" role="alert">
+        <strong>Error!!</strong> {{ error_message }}
+    </div>
+    {% endif %}
+    {% if success_message %}
+    <div class="alert alert-success" role="alert">
+        <strong>Success!!</strong> {{ success_message }}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

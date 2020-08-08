@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid" style = "height: 91.5%;padding-top: 1rem;background-color: #E6E6E6;">
+        <form action="{% url 'payment_app:print_payment' %}" method = "post">
+		{% csrf_token %}
+			<div class="form-group row">
+				<label class="control-label col-md-2" style = "font-weight: bold;" for="payment">Payment No:</label>
+				<div class="col-md-4">
+					<select class="form-control" id="payment" name="payment">
+					    {% if payments %}
+						    {% for payment in payments %}
+							        <option>{{ payment.payment_no }}</option>
+							{% endfor %}
+						{% endif %}
+					</select>
+				</div>
+			</div>
+			<div class="form-group row">
+				<div class="col-md-10">
+					<button type="submit" class="btn btn-primary">Print</button>
+				</div>
+			</div>
+		</form>
+	{% if error_message %}
+	<div class="alert alert-danger" role="alert">
+		<strong>Error!!</strong> {{ error_message }}
+	</div>
+	{% endif %}
+	{% if success_message %}
+	<div class="alert alert-success" role="alert">
+		<strong>Success!!</strong> {{ success_message }}
+	</div>
+	{% endif %}
+</div>
+{% endblock %}

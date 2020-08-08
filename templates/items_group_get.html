@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container-fluid" style = "height: 91.5%;padding-top: 1rem;background-color: #E6E6E6;">
+        <div class="panel-body">
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>Item Group Name</th>
+                    <th>HSN Code</th>
+					<th>Tax</th>
+                </tr>
+            </thead>
+            <tbody>
+			{% if item_groups %}
+			    {% for item_group in item_groups %}
+                    <tr>
+					    <td>{{item_group.item_group_name}}</td>
+						<td>{{item_group.hsn_code}}</td>
+						<td>{{item_group.tax}}</td>
+                    </tr>					
+ 			    {% endfor %}
+			{% endif %}
+            </tbody>
+        </table>
+    </div>
+	</div>
+</div>
+{% endblock %}

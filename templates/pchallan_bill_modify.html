@@ -1,0 +1,491 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<script>
+	    function sum() {
+           var txtFirstNumberValue = document.getElementById('gross_amount').value;
+           var txtSecondNumberValue = document.getElementById('other_amount').value;
+           if (txtFirstNumberValue == "")
+               txtFirstNumberValue = 0;
+           if (txtSecondNumberValue == "")
+               txtSecondNumberValue = 0;
+		   if (document.getElementById('gst').value == "")
+               document.getElementById('gst').value = 0;
+           var result = parseFloat(txtFirstNumberValue) + parseFloat(txtSecondNumberValue) + parseFloat(document.getElementById('gst').value);
+           if (!isNaN(result)) {
+               document.getElementById('total_amount').value = result;
+       }
+   }
+        function SomeDeleteRowFunction(o) {
+        var p=o.parentNode.parentNode;
+        document.getElementById('job_name').value = p.getElementsByTagName('td')[1].innerHTML
+        document.getElementById('slip_no').value = p.getElementsByTagName('td')[3].innerHTML
+        document.getElementById('item').value = p.getElementsByTagName('td')[4].innerHTML
+        document.getElementById('quantity').value = p.getElementsByTagName('td')[5].innerHTML
+        document.getElementById('unit').value = p.getElementsByTagName('td')[6].innerHTML
+        document.getElementById('rate').value = p.getElementsByTagName('td')[7].innerHTML
+		document.getElementById('gross_amount').value = (parseFloat(document.getElementById('gross_amount').value) - parseFloat(p.getElementsByTagName('td')[8].innerHTML));
+		document.getElementById('gst').value = (parseFloat(document.getElementById('gst').value) - parseFloat(p.getElementsByTagName('td')[9].innerHTML));
+		sum()
+        p.parentNode.removeChild(p);
+        }
+        function CmdAdd_onclick() {
+		    if(document.getElementById('rate').value == "" && document.getElementById('quantity').value == "")
+            {
+			    alert("Fill the rate and quantity.")
+			    return;
+			}
+            var newTable,startTag,endTag;
+            startTag="<div class=\"panel-body\" style=\"max-height: 170px;overflow-y: scroll;\"><div class=\"table-responsive\"><table class=\"table table-bordered\"><thead><tr><th>#</th><th>Job Name</th><th>Job Date</th><th>Slip No</th><th>Item Name</th><th>Quantity</th><th>Unit</th><th>Rate</th><th>Amount</th><th>GST</th><th>Delete</th></tr></thead><tbody>"
+            endTag="</tbody></table></div></div>"
+            newTable=startTag;
+            var trContents;
+			var serial;
+			serial = 0;
+            trContents=document.body.getElementsByTagName('tr');
+            if(trContents.length>1)
+            {
+                for(i=1;i<trContents.length;i++)
+                {
+                    if(trContents[i].innerHTML)
+                    {
+                        newTable+="<tr>";
+						serial = serial + 1;
+						trContents[i].getElementsByTagName('td')[0].innerHTML = String(serial)
+						//alert(trContents[i].getElementsByTagName('td')[0].innerHTML)
+						newTable+=trContents[i].innerHTML;
+                        newTable+="</tr>";
+                    } 
+                }
+            }
+			newTable+="<tr><td>" + String(parseFloat(serial) + 1) +"</td>";
+            newTable+="<td>" + document.getElementById('job_name').value +"</td>";
+            newTable+="<td>" + document.getElementById('job_date').value +"</td>";
+			newTable+="<td>" + document.getElementById('slip_no').value +"</td>";
+			newTable+="<td>" + document.getElementById('item').value +"</td>";
+			newTable+="<td>" + document.getElementById('quantity').value +"</td>";
+			newTable+="<td>" + document.getElementById('unit').value +"</td>";
+			newTable+="<td>" + document.getElementById('rate').value +"</td>";
+			if (document.getElementById('gross_amount').value == "")
+			    document.getElementById('gross_amount').value = 0
+			if (document.getElementById('gst').value == "")
+			    document.getElementById('gst').value = 0
+            newTable+="<td>" +(parseFloat(document.getElementById('quantity').value) * parseFloat(document.getElementById('rate').value))+"</td>";
+			var gst = "{{items}}"
+            gst = "{% for item in items %}{{ item.group_name.tax }},{% endfor %}"
+			i_n = "{% for item in items %}{{ item.item_name }},{% endfor %}"
+			gst = gst.substr(0, gst.length -1).split(",");
+			i_n = i_n.substr(0, i_n.length -1).split(",");
+			
+			for (i = 0;i<gst.length; i++) {
+				if(i_n[i] == document.getElementById('item').value)
+				{
+				    document.getElementById('gst').value = parseFloat(document.getElementById('gst').value) + ((gst[i]/100) * (parseFloat(document.getElementById('quantity').value) * parseFloat(document.getElementById('rate').value)));
+                    newTable+="<td>" +((gst[i]/100) * (parseFloat(document.getElementById('quantity').value) * parseFloat(document.getElementById('rate').value)))+"</td>";				    
+				}
+			}
+            newTable+="<td> <button type=\"button\" class=\"btn btn-primary\" onclick=\"SomeDeleteRowFunction(this)\">Delete Record</button></td></tr>";
+            newTable+=endTag;
+			document.getElementById('gross_amount').value = parseFloat(document.getElementById('gross_amount').value) + (parseFloat(document.getElementById('quantity').value) * parseFloat(document.getElementById('rate').value));
+            document.getElementById('tableDiv').innerHTML=newTable;
+			sum()
+			document.getElementById('job_name').value = ""
+			document.getElementById('quantity').value = ""
+			document.getElementById('rate').value = ""
+}
+function post() {
+    method = "post";
+
+    // The rest of this code assumes you are not using a library.
+    // It can be made less wordy if you use one.
+	document.getElementById("save_button").disabled = true;
+    var params = []
+    params.push({
+	"csrfmiddlewaretoken": Cookies.get('csrftoken')
+	});
+	params.push({
+	"client_name": document.getElementById('client').value
+	});
+	params.push({
+	"date": document.getElementById('date').value
+	});
+	params.push({
+	"gross_amount": document.getElementById('gross_amount').value
+	});
+	params.push({
+	"other_amount": document.getElementById('other_amount').value
+	});
+	params.push({
+	"bill_no": document.getElementById('bill_no').value
+	});
+	params.push({
+	"gst": document.getElementById('gst').value
+	});
+	params.push({
+	"total_amount": document.getElementById('total_amount').value
+	});
+	trContents=document.body.getElementsByTagName('tr');
+    if(trContents.length>1)
+    {
+	    var tbl = []
+        for(i=1;i<trContents.length;i++)
+		{
+		    var tbr = []
+			if(trContents[i].innerHTML)
+			{
+				tbr.push({
+	            "job_name":trContents[i].getElementsByTagName('td')[1].innerHTML
+	            });
+				tbr.push({
+	            "job_date": trContents[i].getElementsByTagName('td')[2].innerHTML
+	            });
+				tbr.push({
+	            "slip_no": trContents[i].getElementsByTagName('td')[3].innerHTML
+	            });
+				tbr.push({
+	            "item": trContents[i].getElementsByTagName('td')[4].innerHTML
+	            });
+				tbr.push({
+	            "quantity": trContents[i].getElementsByTagName('td')[5].innerHTML
+	            });
+				tbr.push({
+	            "unit": trContents[i].getElementsByTagName('td')[6].innerHTML
+	            });
+				tbr.push({
+	            "rate": trContents[i].getElementsByTagName('td')[7].innerHTML
+	            });
+				tbr.push({
+	            "gst": trContents[i].getElementsByTagName('td')[9].innerHTML
+	            });
+			}
+			tbl.push({
+			"key":trContents[i].getElementsByTagName('td')[0].innerHTML,"value": tbr
+			});
+		}
+		params.push({
+		"table": tbl
+		});
+	}
+	//alert(params);
+	//alert(JSON.stringify(params))
+	var xhttp = new XMLHttpRequest();
+    xhttp.open("POST", "{% url 'pchallan_app:bill_modify_pchallan' %}", true);
+    xhttp.setRequestHeader("Content-type", "application/json");
+	xhttp.setRequestHeader("X-CSRFToken", Cookies.get('csrftoken'));
+    xhttp.send(JSON.stringify(params));
+	xhttp.onreadystatechange = function() {
+	if (this.readyState === 4 && this.status === 200) {
+	if (this.getResponseHeader('content-type')=='application/pdf'){
+	    var blob = new Blob([this.response], { type: 'image/pdf' });
+	    let a = document.createElement("a");
+        a.style = "display: none";
+        document.body.appendChild(a);
+	    let url = window.URL.createObjectURL(blob);
+        a.href = url;
+        a.download = 'myFile.pdf';
+        a.click();
+		alert('Challan Modified')
+        window.URL.revokeObjectURL(url);
+	    location.reload();
+	}
+	else
+	{
+	document.open();
+	document.write(this.responseText);
+	document.close();
+	};
+    };
+    };
+}
+
+</script>
+<div class="container-fluid" style="height: 91.5%;padding-top: 1rem;background-color: #E6E6E6;">
+    <form action="{% url 'pchallan_app:get_pchallan_bill' %}" method="post">
+        {% csrf_token %}
+        <div class="form-group row">
+            <label class="control-label col-md-2" style="font-weight: bold;" for="bill_no">Bill No:</label>
+            <div class="col-md-4">
+                <select class="form-control" id="bill_no" name="bill_no">
+                    {% if pchallans %}
+                    {% for pchallan in pchallans %}
+                    {% if pchallan_grp and pchallan_grp.bill_no == pchallan.bill_no %}
+                    <option selected>{{ pchallan.bill_no.bill_no }}</option>
+                    {% else %}
+                    <option>{{ pchallan.bill_no.bill_no }}</option>
+                    {% endif %}
+                    {% endfor %}
+                    {% endif %}
+                </select>
+            </div>
+            <label class="control-label col-md-2" style="font-weight: bold;" for="client_name_filter">Client
+                Name:</label>
+            <div class="col-md-4">
+                <select class="form-control" id="client_name_filter" name="client_name_filter">
+                    {% if clients %}
+                    {% for client in clients %}
+                    {% if pchallan_grp and pchallan_grp.client_name.client_name == client.client_name %}
+                    <option selected>{{ client.client_name }}</option>
+                    {% else %}
+                    <option>{{ client.client_name }}</option>
+                    {% endif %}
+                    {% endfor %}
+                    {% endif %}
+                </select>
+            </div>
+        </div>
+        <div class="form-group row">
+            <div class="col-md-2">
+                <input type="submit" name="button_1" value="Get_Details" class="btn btn-primary">
+            </div>
+            <div class="col-md-2">
+                <input type="submit" name="button_3" value="Get_Details_By_Client" class="btn btn-primary">
+            </div>
+            <div class="col-md-2">
+                <input type="submit" name="button_2" value="Print" class="btn btn-primary">
+            </div>
+        </div>
+    </form>
+    <form action="{% url 'pchallan_app:add_pchallan' %}" method="post">
+        {% csrf_token %}
+        <div class="form-group row">
+            <label class="control-label col-md-2" style="font-weight: bold;" for="date">Date:</label>
+            <div class="col-md-4">
+                {% if pchallan_grp %}
+                <input autocomplete="off" type="datetime-local" value="{{pchallan_grp.date}}" class="form-control"
+                       name="date" id="date" placeholder="Date" required>
+                {% elif datetime %}
+                <input autocomplete="off" type="datetime-local" value="{{datetime}}" class="form-control" name="date"
+                       id="date" placeholder="Date" required>
+                {% else %}
+                <input autocomplete="off" type="datetime-local" class="form-control" name="date" id="date"
+                       placeholder="Date" required>
+                {% endif %}
+
+            </div>
+            <label class="control-label col-md-2" style="font-weight: bold;" for="client">Client Name:</label>
+            <div class="col-md-4">
+                <select class="form-control" id="client" name="client_name">
+                    {% if clients %}
+                    {% for client in clients %}
+                    {% if pchallan_grp and pchallan_grp.client_name.client_name == client.client_name %}
+                    <option value="{{client.client_name}}" selected>{{ client.client_name }}--{{ client.nickname }}
+                    </option>
+                    {% else %}
+                    <option value="{{client.client_name}}">{{ client.client_name }}--{{ client.nickname }}</option>
+                    {% endif %}
+                    {% endfor %}
+                    {% endif %}
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <label class="control-label col-md-2" style="font-weight: bold;" for="job_date">Job Date:</label>
+            <div class="col-md-4">
+                {% if datetime %}
+                <input autocomplete="off" type="datetime-local" value="{{datetime}}" class="form-control"
+                       name="job_date" id="job_date" placeholder="Job Date" required>
+                {% else %}
+                <input autocomplete="off" type="datetime-local" class="form-control" name="job_date" id="job_date"
+                       placeholder="Job Date" required>
+                {% endif %}
+            </div>
+            <label class="control-label col-md-2" style="font-weight: bold;" for="job_name">Job Name:</label>
+            <div class="col-md-4">
+                <input autocomplete="off" type="text" class="form-control" name="job_Name" id="job_name"
+                       placeholder="Job Name">
+            </div>
+        </div>
+        <div class="form-group row">
+            <label class="control-label col-md-2" style="font-weight: bold;" for="item">Item Name:</label>
+            <div class="col-md-4">
+                <select class="form-control" id="item" name="item_name">
+                    {% if items %}
+                    {% for item in items %}
+                    <option selected>{{ item.item_name }}</option>
+                    {% endfor %}
+                    {% endif %}
+                </select>
+            </div>
+            <label class="control-label col-md-2" style="font-weight: bold;" for="quantity">Quantity:</label>
+            <div class="col-md-4">
+                <input autocomplete="off" type="number" class="form-control" name="quantity" id="quantity"
+                       placeholder="Quantity">
+            </div>
+        </div>
+        <div class="form-group row">
+            <label class="control-label col-md-2" style="font-weight: bold;" for="unit">Unit:</label>
+            <div class="col-md-2">
+                <select class="form-control" id="unit" name="unit">
+                    <option selected>Inches</option>
+                    <option>Sheets</option>
+                    <option>Pieces</option>
+                </select>
+            </div>
+            <label class="control-label col-md-2" style="font-weight: bold;" for="slip_no">Slip_no:</label>
+            <div class="col-md-2">
+                <input autocomplete="off" type="number" class="form-control" name="slip_no" id="slip_no"
+                       placeholder="Slip No">
+            </div>
+            <label class="control-label col-md-2" style="font-weight: bold;" for="rate">Rate:</label>
+            <div class="col-md-2">
+                <input autocomplete="off" type="number" class="form-control" name="rate" id="rate" placeholder="Rate">
+            </div>
+        </div>
+        <div class="form-group row">
+            <div class="col-md-10">
+                <button type="button" onclick="CmdAdd_onclick()" class="btn btn-primary">Add</button>
+            </div>
+        </div>
+
+        <div class="panel panel-default" id="tableDiv">
+            <div class="panel-body" style="max-height: 170px;overflow-y: scroll;">
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Job Name</th>
+                            <th>Job Date</th>
+                            <th>Slip No</th>
+                            <th>Item Name</th>
+                            <th>Quantity</th>
+                            <th>Unit</th>
+                            <th>Rate</th>
+                            <th>Amount</th>
+                            <th>GST</th>
+                            <th>Delete</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% if pjob_grp %}
+                        {% for pjob in pjob_grp %}
+                        <tr>
+                            <td>{{pjob.job_id}}</td>
+                            <td>{{pjob.job_name}}</td>
+                            <td>{{pjob.job_date}}</td>
+                            <td>{{pjob.slip_no}}</td>
+                            <td>{{pjob.item.item_name}}</td>
+                            <td>{{pjob.quantity}}</td>
+                            <td>{{pjob.unit}}</td>
+                            <td>{{pjob.rate}}</td>
+                            <td>{{pjob.amount}}</td>
+                            <td>{{pjob.gst}}</td>
+                            <td>
+                                <button type="button" class="btn btn-primary" onclick="SomeDeleteRowFunction(this)">
+                                    Delete Record
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="form-group row">
+            <label class="control-label col-md-2" style="font-weight: bold;" for="gross_amount">Gross Amount:</label>
+            <div class="col-md-4">
+                {% if pchallan_grp %}
+                <input autocomplete="off" type="number" onkeyup="sum()" value="{{pchallan_grp.gross_amount}}"
+                       class="form-control" name="gross_amount" id="gross_amount" disabled required>
+                {% else %}
+                <input autocomplete="off" type="number" onkeyup="sum()" class="form-control" name="gross_amount"
+                       id="gross_amount" disabled required>
+                {% endif %}
+            </div>
+            <label class="control-label col-md-2" style="font-weight: bold;" for="gst">GST:</label>
+            <div class="col-md-4">
+                {% if pchallan_grp %}
+                <input autocomplete="off" type="number" value="{{pchallan_grp.gst}}" class="form-control" name="gst"
+                       id="gst" disabled required>
+                {% else %}
+                <input autocomplete="off" type="number" class="form-control" name="gst" id="gst" disabled required>
+                {% endif %}
+            </div>
+        </div>
+        <div class="form-group row">
+            <label class="control-label col-md-2" style="font-weight: bold;" for="other_amount">Other Amount:</label>
+            <div class="col-md-4">
+                {% if pchallan_grp %}
+                <input autocomplete="off" type="number" onkeyup="sum()" value="{{pchallan_grp.other_amount}}"
+                       class="form-control" name="other_amount" id="other_amount" required>
+                {% else %}
+                <input autocomplete="off" type="number" onkeyup="sum()" value="0" class="form-control"
+                       name="other_amount" id="other_amount" required>
+                {% endif %}
+            </div>
+            <label class="control-label col-md-2" style="font-weight: bold;" for="total_amount">Total Amount:</label>
+            <div class="col-md-4">
+                {% if pchallan_grp %}
+                <input autocomplete="off" type="number" value="{{pchallan_grp.total_amount}}" class="form-control"
+                       name="total_amount" id="total_amount" disabled required>
+                {% else %}
+                <input autocomplete="off" type="number" class="form-control" name="total_amount" id="total_amount"
+                       disabled required>
+                {% endif %}
+            </div>
+        </div>
+        <div class="form-group row">
+            <div class="col-md-10">
+                <button type="button" id="save_button" onclick="post()" class="btn btn-primary">Save</button>
+            </div>
+        </div>
+    </form>
+    {% if filtered_pchallans %}
+    <div class="modal fade show" id="filter_modal" role="dialog" style="display: block;">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button class="close" data-dismiss="modal" type="button">&times;</button>
+                    <h4 class="modal-title"></h4>
+                </div>
+                <div class="modal-body">
+                    <table style="width:100%">
+                        <tr>
+                            <th>Challan No</th>
+                            <th>Date</th>
+                            <th>Job 1</th>
+                            <th>Job 2</th>
+                            <th>Amount</th>
+                            <th>Press</th>
+                        </tr>
+                        {% if filtered_pchallans %}
+                        {% for filtered_pchallan in filtered_pchallans %}
+                        <tr>
+                            <form method="post" action="{% url 'pchallan_app:get_pchallan_bill' %}"
+                                  id="job_completion_form">
+                                {% csrf_token %}
+                                <td height="5"><input autocomplete="off" class="form-control" id="challan_no_filter"
+                                                      name="bill_no" type="text"
+                                                      value="{{ filtered_pchallan.bill_no.bill_no }}"
+                                                      readonly="readonly"></td>
+                                <td> {{ filtered_pchallan.date }}</td>
+                                <td> {{ filtered_pchallan.pjob1 }}</td>
+                                <td> {{ filtered_pchallan.pjob2 }}</td>
+                                <td> {{ filtered_pchallan.total_amount }}</td>
+                                <td><input type="submit" name="button_1" value="Get_Details_By_Client"
+                                           class="btn btn-primary"></td>
+                            </form>
+                        </tr>
+                        {% endfor %}
+                        {% endif %}
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    {% if error_message %}
+    <div class="alert alert-danger" role="alert">
+        <strong>Error!!</strong> {{ error_message }}
+    </div>
+    {% endif %}
+    {% if success_message %}
+    <div class="alert alert-success" role="alert">
+        <strong>Success!!</strong> {{ success_message }}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

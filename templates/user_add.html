@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container-fluid" style = "height: 91.5%;padding-top: 1rem;background-color: #E6E6E6;">
+        <form action="{% url 'user_app:add_user' %}" method = "post">
+		{% csrf_token %}
+			<div class="form-group row">
+				<label class="control-label col-md-2" style = "font-weight: bold;" for="username">Username:</label>
+				<div class="col-md-4">
+					<input autocomplete="off" type="text" class="form-control" name="username" id="username" placeholder="Username" required>
+				</div>
+			</div>
+			<div class="form-group row">
+				<label class="control-label col-md-2" style = "font-weight: bold;" for="password">Password:</label>
+				<div class="col-md-4">
+					<input autocomplete="off" type="password" class="form-control" name="password" id="password" placeholder="Password" required>
+				</div>
+			</div>
+			<div class="form-group row"> 
+				<label class="control-label col-md-2" style = "font-weight: bold;" for="email">Email:</label>
+				<div class="col-md-4">
+					<input autocomplete="off" type="email" class="form-control" name="email" id="email" placeholder="Email" required>
+				</div>
+			</div>
+			<div class="form-group row">
+				<label class="control-label col-md-2" style = "font-weight: bold;" for="role">Role:</label>
+				<div class="col-md-4">
+					<select class="form-control" id="role" name="role">
+                        <option selected>Admin</option>
+						<option>User</option>
+					</select>
+				</div>
+			</div>
+			<div class="form-group row">
+				<div class="col-md-10">
+					<button type="submit" class="btn btn-primary">Add</button>
+				</div>
+			</div>
+		</form>
+	{% if error_message %}
+	<div class="alert alert-danger" role="alert">
+		<strong>Error!!</strong> {{ error_message }}
+	</div>
+	{% endif %}
+	{% if success_message %}
+	<div class="alert alert-success" role="alert">
+		<strong>Success!!</strong> {{ success_message }}
+	</div>
+	{% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container-fluid" style="height: 91.5%;padding-top: 1rem;background-color: #E6E6E6;">
+    <form action="{% url 'slips_app:submit_slip_delete' %}" method="post">
+        {% csrf_token %}
+        <div class="form-group row">
+            <label class="control-label col-md-2" for="slip_no" style="font-weight: bold;">Slip No:</label>
+            <div class="col-md-4">
+                <select class="form-control" id="slip_no" name="slip_no">
+                    {% if slips %}
+                    {% for slip in slips %}
+                    <option selected value="{{slip.slip_no}}">{{ slip.slip_no }}--{{ slip.client_name.client_name }}
+                    </option>
+                    {% endfor %}
+                    {% endif %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <button name="button" type="submit" value="Delete" class="btn btn-primary">
+                    Delete
+                </button>
+            </div>
+        </div>
+    </form>
+    {% if error_message %}
+	<div class="alert alert-danger" role="alert">
+		<strong>Error!!</strong> {{ error_message }}
+	</div>
+	{% endif %}
+	{% if success_message %}
+	<div class="alert alert-success" role="alert">
+		<strong>Success!!</strong> {{ success_message }}
+	</div>
+	{% endif %}
+</div>
+{% endblock %}

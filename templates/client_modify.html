@@ -1,0 +1,202 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid" style = "height: 91.5%;padding-top: 1rem;background-color: #E6E6E6;">
+        <form action="{% url 'client_app:get_client' %}" method = "post">
+		{% csrf_token %}
+			<div class="form-group row">
+				<label class="control-label col-md-2" style = "font-weight: bold;" for="ign">Client Name:</label>
+				<div class="col-md-4">
+					<select class="form-control" id="exampleFormControlSelect1" name="client_name">
+					    {% if clients %}
+						    {% for client in clients %}
+							    {% if client_grp and client_grp.client_name == client.client_name %}
+                                    <option value = "{{client.client_name}}" selected>{{ client.client_name }}--{{ client.nickname }}</option>
+								{% else %}
+							        <option value = "{{client.client_name}}">{{ client.client_name }}--{{ client.nickname }}</option>
+								{% endif %}
+							{% endfor %}
+						{% endif %}
+					</select>
+				</div>
+			</div>
+			<div class="form-group row">
+				<div class="col-md-10">
+					<button type="submit" class="btn btn-primary">Get Details</button>
+				</div>
+			</div>
+		</form>
+		<form action="{% url 'client_app:modify_client' %}" method = "post">
+		{% csrf_token %}
+		    <div class="form-group row">
+				<label class="control-label col-md-2" style = "font-weight: bold;" for="client_name">Items Group Name:</label>
+				<div class="col-md-4">
+				    {% if client_grp %}
+					<input autocomplete="off" type="text" class="form-control" name="client_name" id="client_name" value = "{{client_grp.client_name}}" placeholder="Client Name" required>
+                    {% else %}
+					<input autocomplete="off" type="text" class="form-control" name="client_name" id="client_name" placeholder="Client Name" required>
+					{% endif %}
+				</div>
+			</div>
+			<div class="form-group row">
+				<label class="control-label col-md-2" style = "font-weight: bold;" for="under_bank_accounts">Under Bank Accounts:</label>
+				<div class="col-md-4">
+				<select class="form-control" id="under_bank_accounts" name="under_bank_accounts">
+				        {% if client_grp and client_grp.under_bank_accounts == "Bank Account" %}
+          				<option selected>Bank Account</option>
+						{% else %}
+						<option>Bank Account</option>
+						{% endif %}
+						{% if client_grp and client_grp.under_bank_accounts == "Cash" %}
+          				<option selected>Cash</option>
+						{% else %}
+						<option>Cash</option>
+						{% endif %}
+				</select>
+				</div>
+			</div>
+			<div class="form-group row"> 
+				<label class="control-label col-md-2" style = "font-weight: bold;" for="balance">Balance:</label>
+				<div class="col-md-4">
+				    {% if client_grp %}
+					<input autocomplete="off" type="text" class="form-control" value = "{{client_grp.balance}}" name="balance" id="balance" placeholder="Balance" required readonly>
+					{% else %}
+					<input autocomplete="off" type="text" class="form-control" value="0" name="balance" id="balance" placeholder="Balance" required readonly>
+					{% endif %}
+				</div>
+			</div>
+			<div class="form-group row">
+				<label class="control-label col-md-2" style = "font-weight: bold;" for="address">Address:</label>
+				<div class="col-md-4">
+				    {% if client_grp %}
+					<input autocomplete="off" type="text" class="form-control" name="address" id="address" value = "{{client_grp.address}}" placeholder="Address" required>
+                    {% else %}
+					<input autocomplete="off" type="text" class="form-control" name="address" id="address" placeholder="Address" required>
+					{% endif %}
+				</div>
+				<label class="control-label col-md-2" style = "font-weight: bold;" for="city">City:</label>
+				<div class="col-md-4">
+				    {% if client_grp %}
+					<input autocomplete="off" type="text" class="form-control" value = "{{client_grp.city}}" name="city" id="city" placeholder="City" required>
+					{% else %}
+					<input autocomplete="off" type="text" class="form-control" maxlength="8" name="city" id="city" placeholder="City" required>
+					{% endif %}
+				</div>
+			</div>
+			<div class="form-group row"> 
+				<label class="control-label col-md-2" style = "font-weight: bold;" for="state">State:</label>
+				<div class="col-md-4">
+				    <select class="form-control" name="state" id="state" required>
+					{% if client_grp and client_grp.state == "Delhi - 07"%}
+						<option value="Delhi - 07" selected>Delhi</option>
+					{% else %}
+					    <option value="Delhi - 07">Delhi</option>
+					{% endif %}
+					{% if client_grp and client_grp.state == "Haryana - 06"%}
+						<option value="Haryana - 06" selected>Haryana</option>
+					{% else %}
+					    <option value="Haryana - 06">Haryana</option>
+					{% endif %}
+					{% if client_grp and client_grp.state == "Uttar Pradesh - 09"%}
+						<option value="Uttar Pradesh - 09" selected>Uttar Pradesh</option>
+					{% else %}
+				    	<option value="Uttar Pradesh - 09">Uttar Pradesh</option>
+					{% endif %}
+					{% if client_grp and client_grp.state == "Rajasthan - 08"%}
+						<option value="Rajasthan - 08" selected>Rajasthan</option>
+					{% else %}
+				    	<option value="Rajasthan - 08">Rajasthan</option>
+					{% endif %}
+					{% if client_grp and client_grp.state == "Gujarat - 24"%}
+						<option value="Gujarat - 24" selected>Gujarat</option>
+					{% else %}
+				    	<option value="Gujarat - 24">Gujarat</option>
+					{% endif %}
+					{% if client_grp and client_grp.state == "Uttarakhand - 05"%}
+						<option value="Uttarakhand - 05" selected>Uttarakhand</option>
+					{% else %}
+				    	<option value="Uttarakhand - 05">Uttarakhand</option>
+					{% endif %}
+					</select>
+				</div>
+				<label class="control-label col-md-2" style = "font-weight: bold;" for="pincode">Pincode:</label>
+				<div class="col-md-4">
+				    {% if client_grp %}
+					<input autocomplete="off" type="text" class="form-control" name="pincode" id="pincode" value = "{{client_grp.pincode}}" placeholder="Pincode" required>
+                    {% else %}
+					<input autocomplete="off" type="text" class="form-control" name="pincode" id="pincode" placeholder="Pincode" required>
+					{% endif %}
+				</div>
+			</div>
+			<div class="form-group row">
+				<label class="control-label col-md-2" style = "font-weight: bold;" for="phone1">Phone 1:</label>
+				<div class="col-md-4">
+				    {% if client_grp %}
+					<input autocomplete="off" type="text" class="form-control" value = "{{client_grp.phone1}}" name="phone1" id="phone1" placeholder="Phone 1" required>
+					{% else %}
+					<input autocomplete="off" type="text" class="form-control" maxlength="8" name="phone1" id="phone1" placeholder="Phone 1" required>
+					{% endif %}
+				</div> 
+				<label class="control-label col-md-2" style = "font-weight: bold;" for="phone2">Phone 2:</label>
+				<div class="col-md-4">
+				    {% if client_grp %}
+					<input autocomplete="off" type="text" class="form-control" value = "{{client_grp.phone2}}" name="phone2" id="phone2" placeholder="Phone 2" required>
+					{% else %}
+					<input autocomplete="off" type="text" class="form-control" name="phone2" id="phone2" placeholder="Phone 2" required>
+					{% endif %}
+				</div>
+			</div>
+			<div class="form-group row">
+				<label class="control-label col-md-2" style = "font-weight: bold;" for="gstin">GSTIN:</label>
+				<div class="col-md-4">
+				    {% if client_grp %}
+					<input autocomplete="off" type="text" class="form-control" name="gstin" id="gstin" value = "{{client_grp.gstin}}" placeholder="GSTIN" required>
+                    {% else %}
+					<input autocomplete="off" type="text" class="form-control" name="gstin" id="gstin" placeholder="GSTIN" required>
+					{% endif %}
+				</div>
+				<label class="control-label col-md-2" style = "font-weight: bold;" for="pan_no">Pan No:</label>
+				<div class="col-md-4">
+				    {% if client_grp %}
+					<input autocomplete="off" type="text" class="form-control" value = "{{client_grp.pan_no}}" name="pan_no" id="pan_no" placeholder="Pan No" required>
+					{% else %}
+					<input autocomplete="off" type="text" class="form-control" maxlength="8" name="pan_no" id="pan_no" placeholder="Pan No" required>
+					{% endif %}
+				</div>
+			</div>
+			<div class="form-group row"> 
+				<label class="control-label col-md-2" style = "font-weight: bold;" for="email">Email:</label>
+				<div class="col-md-4">
+				    {% if client_grp %}
+					<input autocomplete="off" type="text" class="form-control" value = "{{client_grp.email}}" name="email" id="email" placeholder="Email" required>
+					{% else %}
+					<input autocomplete="off" type="text" class="form-control" name="email" id="email" placeholder="Email" required>
+					{% endif %}
+				</div>
+				<label class="control-label col-md-2" style = "font-weight: bold;" for="nickname">Nickname:</label>
+				<div class="col-md-4">
+				    {% if client_grp %}
+					<input autocomplete="off" type="text" class="form-control" value = "{{client_grp.nickname}}" name="nickname" id="nickname" placeholder="Nickname" required>
+					{% else %}
+					<input autocomplete="off" type="text" class="form-control" name="nickname" id="nickname" placeholder="Nickname" required>
+					{% endif %}
+				</div>
+			</div>
+			<div class="form-group row">
+				<div class="col-md-10">
+					<button type="submit" class="btn btn-primary">Modify</button>
+				</div>
+			</div>
+		</form>
+	{% if error_message %}
+	<div class="alert alert-danger" role="alert">
+		<strong>Error!!</strong> {{ error_message }}
+	</div>
+	{% endif %}
+	{% if success_message %}
+	<div class="alert alert-success" role="alert">
+		<strong>Success!!</strong> {{ success_message }}
+	</div>
+	{% endif %}
+</div>
+{% endblock %}

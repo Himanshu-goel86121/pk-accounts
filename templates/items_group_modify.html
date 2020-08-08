@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid" style = "height: 91.5%;padding-top: 1rem;background-color: #E6E6E6;">
+        <form action="{% url 'items_group_app:get_item_group' %}" method = "post">
+		{% csrf_token %}
+			<div class="form-group row">
+				<label class="control-label col-md-2" style = "font-weight: bold;" for="exampleFormControlSelect1">Items Group Name:</label>
+				<div class="col-md-4">
+					<select class="form-control" id="exampleFormControlSelect1" name="item_group_name">
+					    {% if item_groups %}
+						    {% for item_group in item_groups %}
+							    {% if item_grp and item_grp.item_group_name == item_group.item_group_name %}
+                                    <option selected>{{ item_group.item_group_name }}</option>
+								{% else %}
+							        <option>{{ item_group.item_group_name }}</option>
+								{% endif %}
+							{% endfor %}
+						{% endif %}
+					</select>
+				</div>
+			</div>
+			<div class="form-group row">
+				<div class="col-md-10">
+					<button type="submit" class="btn btn-primary">Get Details</button>
+				</div>
+			</div>
+		</form>
+		<form action="{% url 'items_group_app:modify_items_group' %}" method = "post">
+		{% csrf_token %}
+		    <div class="form-group row">
+				<label class="control-label col-md-2" style = "font-weight: bold;" for="ign">Items Group Name:</label>
+				<div class="col-md-4">
+				    {% if item_grp %}
+					<input autocomplete="off" type="text" class="form-control" name="item_group_name" id="ign" value = "{{item_grp.item_group_name}}" placeholder="Items Group Name" required>
+                    {% else %}
+					<input autocomplete="off" type="text" class="form-control" name="item_group_name" id="ign" placeholder="Items Group Name" required>
+					{% endif %}
+				</div>
+			</div>
+			<div class="form-group row">
+				<label class="control-label col-md-2" style = "font-weight: bold;" for="hsn">HSN Code:</label>
+				<div class="col-md-4">
+				    {% if item_grp %}
+					<input autocomplete="off" type="text" class="form-control" value = "{{item_grp.hsn_code}}" name="hsn_code" id="hsn" placeholder="HSN Code" required>
+					{% else %}
+					<input autocomplete="off" type="text" class="form-control" maxlength="8" name="hsn_code" id="hsn" placeholder="HSN Code" required>
+					{% endif %}
+				</div>
+			</div>
+			<div class="form-group row"> 
+				<label class="control-label col-md-2" style = "font-weight: bold;" for="tax">Tax:</label>
+				<div class="col-md-4">
+				    {% if item_grp %}
+					<input autocomplete="off" type="text" class="form-control" value = "{{item_grp.tax}}" name="tax" id="tax" placeholder="Tax" required>
+					{% else %}
+					<input autocomplete="off" type="text" class="form-control" name="tax" id="tax" placeholder="Tax" required>
+					{% endif %}
+				</div>
+			</div>
+			<div class="form-group row">
+				<div class="col-md-10">
+					<button type="submit" class="btn btn-primary">Modify</button>
+				</div>
+			</div>
+		</form>
+	{% if error_message %}
+	<div class="alert alert-danger" role="alert">
+		<strong>Error!!</strong> {{ error_message }}
+	</div>
+	{% endif %}
+	{% if success_message %}
+	<div class="alert alert-success" role="alert">
+		<strong>Success!!</strong> {{ success_message }}
+	</div>
+	{% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<script>
+function sortTable(r) {
+  var table, rows, switching, i, x, y, shouldSwitch;
+  table = document.getElementById("myTable");
+  switching = true;
+  /*Make a loop that will continue until
+  no switching has been done:*/
+  while (switching) {
+    //start by saying: no switching is done:
+    switching = false;
+    rows = table.getElementsByTagName("TR");
+    /*Loop through all table rows (except the
+    first, which contains table headers):*/
+    for (i = 1; i < (rows.length - 1); i++) {
+      //start by saying there should be no switching:
+      shouldSwitch = false;
+      /*Get the two elements you want to compare,
+      one from current row and one from the next:*/
+      x = rows[i].getElementsByTagName("TD")[r];
+      y = rows[i + 1].getElementsByTagName("TD")[r];
+      //check if the two rows should switch place:
+      if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
+        //if so, mark as a switch and break the loop:
+        shouldSwitch= true;
+        break;
+      }
+    }
+    if (shouldSwitch) {
+      /*If a switch has been marked, make the switch
+      and mark that a switch has been done:*/
+      rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+      switching = true;
+    }
+  }
+}
+</script>
+
+<div class="container-fluid" style = "height: 91.5%;padding-top: 1rem;background-color: #E6E6E6;">
+        <div class="panel-body">
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped" id="myTable">
+            <thead>
+                <tr>
+		     		<th><a href = "#" onclick = "sortTable(1)">Client Name</a></th>
+                    <th>Address</th>
+					<th>Phone 1</th>
+					<th>Phone 2</th>
+					<th>GSTIN</th>
+					<th>Email</th>
+                </tr>
+            </thead>
+            <tbody>
+			{% if clients %}
+			    {% for client in clients %}
+                    <tr>
+					    <td>{{client.client_name}}</td>
+						<td>{{client.address}}</td>
+					    <td>{{client.phone1}}</td>
+						<td>{{client.phone2}}</td>
+						<td>{{client.gstin}}</td>
+						<td>{{client.email}}</td>
+                    </tr>					
+ 			    {% endfor %}
+			{% endif %}
+            </tbody>
+        </table>
+    </div>
+	</div>
+</div>
+{% endblock %}

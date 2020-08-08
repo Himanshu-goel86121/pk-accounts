@@ -1,0 +1,190 @@
+{% extends 'base.html' %}
+{% block content %}
+<script>
+    function add_data_modal(slip_no)
+    {
+        var params = []
+        params.push({
+	        "csrfmiddlewaretoken": Cookies.get('csrftoken')
+	    });
+	    params.push({
+	        "slip_no": slip_no
+	    });
+        var xhttp = new XMLHttpRequest();
+        xhttp.open("POST", "{% url 'slips_app:get_slip_jobs' %}", true);
+        xhttp.setRequestHeader("Content-type", "application/json");
+	    xhttp.setRequestHeader("X-CSRFToken", Cookies.get('csrftoken'));
+        xhttp.send(JSON.stringify(params));
+        xhttp.onreadystatechange = function() {
+	        if(this.readyState === 4 && this.status === 200) {
+	            var response_data = JSON.parse(this.response)
+	            slip_jobs = response_data["slip_jobs"]
+	            slip = response_data["slip"]
+	            for(i=0; i<slip_jobs.length; i++)
+	            {
+	                document.getElementById("job_id".concat(String(i))).value = slip_jobs[i]["job_id"]
+	                document.getElementById("job_name".concat(String(i))).value = slip_jobs[i]["job_name"]
+	                document.getElementById("quantity".concat(String(i))).value = slip_jobs[i]["quantity"]
+	                document.getElementById("item".concat(String(i))).value = slip_jobs[i]["item"]
+	                if(slip_jobs[i]["fb"])
+	                    document.getElementById("fb".concat(String(i))).checked = true
+	                if(slip_jobs[i]["completed"])
+	                    document.getElementById("job_completed".concat(String(i))).checked = true
+	                else
+	                    document.getElementById("delivered").disabled = true
+	            }
+	            for(i=slip_jobs.length; i<10; i++)
+	            {
+	                document.getElementById("job_completed".concat(String(i))).disabled = true
+	            }
+	            document.getElementById("date").value = slip["date"]
+	            document.getElementById("client").value = slip["client_name"]
+	            document.getElementById("slip_no").value = slip["slip_no"]
+
+	        }
+	    }
+    }
+    function check_completed()
+    {
+        jobs_completed = document.getElementsByName("job_completed")
+        document.getElementById("delivered").disabled = false
+        for(i=0; i<jobs_completed.length; i++)
+        {
+            if(!jobs_completed[i].disabled && !jobs_completed[i].checked && jobs_completed[i].type != "hidden")
+                document.getElementById("delivered").disabled = true
+        }
+    }
+    function submit_form(obj)
+    {
+        if(obj.name == "save")
+        {
+            document.getElementById("save_delivered").value = "save"
+            document.getElementById("job_completion_form").submit()
+        }
+        if(obj.name == "delivered")
+        {
+            document.getElementById("save_delivered").value = "delivered"
+            document.getElementById("job_completion_form").submit()
+        }
+    }
+
+
+</script>
+<div class="container-fluid">
+    <table class="table table-bordered table-striped table-sm" style="width:100%">
+        <tr>
+            <th class="th-sm">Client Name</th>
+            <th class="th-sm">Date</th>
+            <th class="th-sm">Jobs Remaining</th>
+            <th class="th-sm">Check</th>
+        </tr>
+        {% if slip_objs %}
+        {% for slip in slip_objs %}
+        <tr>
+            <td>
+                {{slip.client_name.client_name}}
+            </td>
+            <td>
+                {{slip.date}}
+            </td>
+            <td>
+                {{slip.jobs_completed}}
+            </td>
+            <td>
+                <button class="btn btn-primary btn-block" data-target="#slip_modal" data-toggle="modal"
+                        onclick="add_data_modal({{slip.slip_no}})" type="button">
+                    EDIT
+                </button>
+            </td>
+        </tr>
+        {% endfor%}
+        {% endif %}
+    </table>
+    <div class="modal fade" id="slip_modal" role="dialog">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button class="close" data-dismiss="modal" type="button">&times;</button>
+                    <h4 class="modal-title"></h4>
+                </div>
+                <div class="modal-body">
+                    <form method="post" action="{% url 'slips_app:update_status' %}" id="job_completion_form">
+                        {% csrf_token %}
+                        <div class="form-group row">
+                            <label class="control-label col-md-1" for="date">Date:</label>
+                            <div class="col-md-3">
+                                <input autocomplete="off" class="form-control" id="date" name="date"
+                                       required type="datetime-local" disabled>
+                            </div>
+                            <label class="control-label col-md-2" for="client" style="font-weight: bold;">Client
+                                Name:</label>
+                            <div class="col-md-6">
+                                <input autocomplete="off" class="form-control" id="client" name="client"
+                                       required type="text" disabled>
+                                <input autocomplete="off" class="form-control" id="slip_no" name="slip_no"
+                                       required type="hidden">
+                            </div>
+                        </div>
+                        <table style="width:100%">
+                            <col width="7%">
+                            <col width="28%">
+                            <col width="40%">
+                            <col width="15%">
+                            <col width="5%">
+                            <col width="5%">
+                            <tr>
+                                <th>Job ID</th>
+                                <th>Job Name</th>
+                                <th>Paper</th>
+                                <th>Qty</th>
+                                <th>F/B</th>
+                                <th>Completed</th>
+                            </tr>
+                            {% for i in "0123456789"%}
+                            <tr style="line-height: 1">
+                                <td height="5"><input autocomplete="off" class="form-control" id="job_id{{i}}"
+                                                      maxlength="8"
+                                                      name="job_id" style="line-height: 1" type="text"
+                                                      readonly="readonly"></td>
+                                <td height="5"><input autocomplete="off" class="form-control" id="job_name{{i}}"
+                                                      maxlength="8"
+                                                      name="job_name" style="line-height: 1" type="text"
+                                                      disabled></td>
+                                <td height="5"><input autocomplete="off" class="form-control" id="item{{i}}"
+                                                      name="item_name"
+                                                      style="line-height: 1; height: calc(2.25rem - 2px)" disabled>
+                                </td>
+                                <td height="5"><input autocomplete="off" class="form-control" id="quantity{{i}}"
+                                                      name="quantity" style="line-height: 1" oninput="sum()"
+                                                      type="number"
+                                                      value=0 disabled></td>
+                                <td height="5"><input
+                                        class="form-control" autocomplete="off" id="fb{{i}}" name="fb" value="True"
+                                        style="line-height: 1, margin: 0 auto; float: left;"
+                                        type="checkbox" disabled><br>
+                                </td>
+                                <td height="5"><input name="job_completed" autocomplete="off" type="hidden"
+                                                      value="False"><input
+                                        class="form-control" autocomplete="off" id="job_completed{{i}}"
+                                        onclick="check_completed()"
+                                        name="job_completed" value="True"
+                                        style="line-height: 1, margin: 0 auto; float: left;"
+                                        type="checkbox"><br>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </table>
+                            <input name="save_delivered" id="save_delivered" autocomplete="off" type="hidden"
+                                                      value="">
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-primary" id="save" name="save" onclick="submit_form(this)">Save</button>
+                    <button class="btn btn-success" id="delivered" name="delivered" onclick="submit_form(this)">Deliver</button>
+                    <button class="btn btn-default" data-dismiss="modal" type="button">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

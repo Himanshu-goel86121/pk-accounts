@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container-fluid" style = "height: 90%;background-color: #E6E6E6;">
+    <div class="row">
+        <div class="jumbotron w-100 h-100" style = "background-color: #E6E6E6;t">
+            <h1 style = "text-align: center;">Hello {{request.user}}</h1>
+            <p style = "text-align: center;">You are on your Dashboard</p>
+<div class="panel-body" style="max-height: 270px;overflow-y: scroll;">
+    <div class="table-responsive">
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>UserName</th>
+                    <th>Message</th>
+					<th>Datetime</th>
+                </tr>
+            </thead>
+            <tbody>
+			{% if messages %}
+			    {% for message in messages %}
+                    <tr>
+						<td style = "padding:0px;">{{message.user_name}}</td>
+						<td style = "padding:0px;">{{message.message}}</td>
+					    <td style = "padding:0px;">{{message.date}}</td>
+                </tr>					
+ 			    {% endfor %}
+			{% endif %}
+            </tbody>
+        </table>
+    </div>
+	</div>
+        </div>
+    </div>
+</div>
+{% endblock %}

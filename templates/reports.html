@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid" style = "height: 91.5%;padding-top: 1rem;background-color: #E6E6E6;">
+<form action="{% url 'fchallan_app:filter_date' %}" method = "post">
+		{% csrf_token %}
+			<div class="form-group row">
+				<label class="control-label col-md-2" style = "font-weight: bold;" for="from">From:</label>
+				<div class="col-md-2">
+					<input autocomplete="off" type="date" class="form-control" name="from" id="from" placeholder="Date">				
+				</div>
+				<label class="control-label col-md-2" style = "font-weight: bold;" for="to">To:</label>
+				<div class="col-md-2">
+					<input autocomplete="off" type="date" class="form-control" name="to" id="to" placeholder="Date">				
+				</div>
+			</div>
+			<div class="form-group row">
+				<label class="control-label col-md-2" style = "font-weight: bold;" for="client_name">Client:</label>
+				<div class="col-md-4">
+				<select class="form-control" id="client_name" name="client_name">
+					    {% if clients %}
+						    {% for client in clients %}
+							    {% if client_grp and client_grp.client_name == client.client_name %}
+                                    <option value = "{{client.client_name}}" selected>{{ client.client_name }}--{{ client.nickname }}</option>
+								{% else %}
+							        <option value = "{{client.client_name}}">{{ client.client_name }}--{{ client.nickname }}</option>
+								{% endif %}
+							{% endfor %}
+						{% endif %}
+					</select>
+				</div>
+			</div>
+			<div class="form-group row">
+				<div class="col-md-2">
+					<button type="submit" formaction="{% url 'report_app:due_list_pchallan_get' %}" class="btn btn-primary btn-block">Due List(printout)</button>
+				</div>
+				<div class="col-md-2">
+					<button type="submit" formaction="{% url 'report_app:due_list_fchallan_get' %}" class="btn btn-primary btn-block">Due List(film)</button>
+				</div>
+				<div class="col-md-2">
+					<button type="submit" formaction="{% url 'report_app:sales_register_get' %}" class="btn btn-primary btn-block">Sales Register</button>
+				</div>
+				<div class="col-md-2">
+					<button type="submit" formaction="{% url 'report_app:b2b_report_get' %}" class="btn btn-primary btn-block">B2B Report</button>
+				</div>
+				<div class="col-md-2">
+					<button type="submit" formaction="{% url 'report_app:due_list_bill_get' %}" class="btn btn-primary btn-block">Due List(Bill)</button>
+				</div>
+			</div>
+			<div class="form-group row">
+			    <div class="col-md-2">
+					<button type="submit" formaction="{% url 'report_app:daily_report_get' %}" class="btn btn-primary btn-block">Daily Report</button>
+				</div>
+			    <div class="col-md-2">
+					<button type="submit" formaction="{% url 'report_app:daily_report_bill_get' %}" class="btn btn-primary btn-block">Daily Bill Report</button>
+				</div>
+				<div class="col-md-2">
+					<button type="submit" formaction="{% url 'report_app:party_challan_ledger_get' %}" class="btn btn-primary btn-block">Client Ledger</button>
+				</div>
+				<div class="col-md-2">
+					<button type="submit" formaction="{% url 'report_app:party_bill_ledger_get' %}" class="btn btn-primary btn-block">Client Bill Ledger</button>
+				</div>
+				<div class="col-md-2">
+					<button type="submit" formaction="{% url 'report_app:b2c_report_get' %}" class="btn btn-primary btn-block">B2C Report</button>
+				</div>
+			</div>
+			<div class="form-group row">
+			    <div class="col-md-2">
+					<button type="submit" formaction="{% url 'report_app:hsn_report_get' %}" class="btn btn-primary btn-block">HSN Report</button>
+				</div>
+				<div class="col-md-3">
+					<button type="submit" formaction="{% url 'report_app:due_list_partywise_pchallan_get' %}" class="btn btn-primary btn-block">Due List(Monthwise Printout Challan)</button>
+				</div>
+				<div class="col-md-3">
+					<button type="submit" formaction="{% url 'report_app:due_list_partywise_bill_get' %}" class="btn btn-primary btn-block">Due List(Monthwise Bill Challan)</button>
+				</div>
+				<div class="col-md-2">
+					<button type="submit" formaction="{% url 'report_app:party_combined_ledger_get' %}" class="btn btn-primary btn-block">Combined Ledger</button>
+				</div>
+			</div>
+			</div>
+			</form>
+</div>
+{% endblock %}

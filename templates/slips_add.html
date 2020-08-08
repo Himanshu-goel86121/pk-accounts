@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<script>
+    function sum()
+    {
+        trContents=document.body.getElementsByTagName('tr');
+        if(trContents.length>1)
+        {
+            var total_sum = 0;
+            for(i=1;i<trContents.length;i++)
+            {
+                trContents[i].getElementsByTagName('td')[5].getElementsByTagName('input')[0].value = trContents[i].getElementsByTagName('td')[4].getElementsByTagName('input')[0].value * trContents[i].getElementsByTagName('td')[2].getElementsByTagName('input')[0].value
+                total_sum = parseFloat(total_sum) + parseFloat(trContents[i].getElementsByTagName('td')[5].getElementsByTagName('input')[0].value)
+            }
+            document.getElementById('total_amount').value = total_sum
+        }
+    }
+	
+
+</script>
+<div class="container-fluid" style="height: 91.5%;padding-top: 1rem;background-color: #E6E6E6;">
+    <form action="{% url 'slips_app:submit_slip' %}" method="post">
+        {% csrf_token %}
+        <div class="form-group row">
+            <label class="control-label col-md-2" for="date" style="font-weight: bold;">Date:</label>
+            <div class="col-md-4">
+                {% if datetime %}
+                <input autocomplete="off" class="form-control" id="date" name="date" placeholder="Date"
+                       required type="date" value="{{datetime}}">
+                {% else %}
+                <input autocomplete="off" class="form-control" id="date" name="date" placeholder="Date"
+                       required type="date">
+                {% endif %}
+            </div>
+            <label class="control-label col-md-2" for="client" style="font-weight: bold;">Client Name:</label>
+            <div class="col-md-4">
+                <select class="form-control" id="client" name="client_name">
+                    {% if clients %}
+                    {% for client in clients %}
+                    <option selected value="{{client.client_name}}">{{ client.client_name }}--{{ client.nickname }}
+                    </option>
+                    {% endfor %}
+                    {% endif %}
+                </select>
+            </div>
+        </div>
+        <table style="width:100%">
+            <tr>
+                <th>Job Name</th>
+                <th>Paper</th>
+                <th>Qty</th>
+                <th>F/B</th>
+                <th>Rate</th>
+                <th>Amount</th>
+            </tr>
+            {% for i in "xxxxxxxxxx"%}
+            <tr style="line-height: 1">
+                <td height="5"><input autocomplete="off" class="form-control" id="job_name" maxlength="25"
+                                      name="job_name"
+                                      placeholder="Job Name" style="line-height: 1" type="text"></td>
+                <td height="5"><select autocomplete="off" class="form-control" id="item"
+                                       name="item_name" style="line-height: 1; height: calc(2.25rem - 2px)">
+                    {% if items %}
+                    {% for item in items %}
+                    <option selected>{{ item.item_name }}</option>
+                    {% endfor %}
+                    {% endif %}
+                </select></td>
+                <td height="5"><input autocomplete="off" class="form-control" id="quantity" name="quantity"
+                                      placeholder="Quantity" style="line-height: 1" oninput="sum()" type="number"
+                                      value=0></td>
+                <td height="5"><input name="fb" autocomplete="off" type="hidden" value="False"><input
+                        class="form-control" autocomplete="off" id="fb" name="fb" value="True"
+                        style="line-height: 1, margin: 0 auto; float: left;"
+                        type="checkbox"/><br>
+                </td>
+                <td height="5"><input autocomplete="off" class="form-control" step="any" id="rate" oninput="sum()" name="rate"
+                                      placeholder="Rate" style="line-height: 1" type="number" value=0></td>
+                <td height="5"><input autocomplete="off" class="form-control" readonly="readonly" id="amount"
+                                      name="amount" placeholder="Amount" style="line-height: 1" type="number"></td>
+            </tr>
+            {% endfor %}
+        </table>
+        <div class="form-group row" style="margin:20px;">
+            <label class="control-label col-md-2" for="total_amount" style="font-weight: bold;">Total Amount:</label>
+            <div class="col-md-4">
+                <input autocomplete="off" class="form-control" readonly="readonly" id="total_amount" name="total_amount"
+                       type="number">
+            </div>
+            <div class="col-md-1">
+                <button
+                        class="btn btn-primary btn-block" type="submit" onclick="">Save
+                </button
+                >
+            </div>
+
+        </div>
+    </form>
+    {% if error_message %}
+    <div class="alert alert-danger" role="alert">
+        <strong>Error!!</strong> {{ error_message }}
+    </div>
+    {% endif %}
+    {% if success_message %}
+    <div class="alert alert-success" role="alert">
+        <strong>Success!!</strong> {{ success_message }}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

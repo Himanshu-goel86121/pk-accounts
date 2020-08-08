@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container-fluid" style = "height: 91.5%;padding-top: 1rem;background-color: #E6E6E6;">
+        <form action="{% url 'client_app:add_client' %}" method = "post">
+		{% csrf_token %}
+			<div class="form-group row">
+				<label class="control-label col-md-2" style = "font-weight: bold;" for="client_name">Client Name:</label>
+				<div class="col-md-4">
+					<input autocomplete="off" type="text" class="form-control" name="client_name" id="client_name" placeholder="Client Name" required>
+				</div>
+				<label class="control-label col-md-2" style = "font-weight: bold;" for="under_bank_accounts">Under Bank Accounts:</label>
+				<div class="col-md-4">
+					<select class="form-control" id="exampleFormControlSelect1" name="under_bank_accounts">
+                        <option selected>Bank Account</option>
+						<option>Cash</option>
+					</select>
+				</div>
+			</div>
+			<div class="form-group row"> 
+				<label class="control-label col-md-2" style = "font-weight: bold;" for="balance">Balance:</label>
+				<div class="col-md-4">
+					<input autocomplete="off" type="text" class="form-control" value="0" name="balance" id="balance" placeholder="Balance" required readonly>
+				</div>
+			</div>
+			<div class="form-group row">
+				<label class="control-label col-md-2" style = "font-weight: bold;" for="address">Address:</label>
+				<div class="col-md-4">
+					<input autocomplete="off" type="text" class="form-control" name="address" id="address" placeholder="Address" required>
+				</div>
+				<label class="control-label col-md-2" style = "font-weight: bold;" for="city">City:</label>
+				<div class="col-md-4">
+					<input autocomplete="off" type="text" class="form-control" name="city" id="city" placeholder="City" required>
+				</div>
+			</div>
+			<div class="form-group row"> 
+				<label class="control-label col-md-2" style = "font-weight: bold;" for="state">State:</label>
+				<div class="col-md-4">
+					<select class="form-control" name="state" id="state" required>
+						<option value="Delhi - 07">Delhi</option>
+						<option value="Haryana - 06">Haryana</option>
+						<option value="Uttar Pradesh - 09">Uttar Pradesh</option>
+						<option value="Rajasthan - 08">Rajasthan</option>
+						<option value="Gujarat - 24">Gujarat</option>
+						<option value="Uttarakhand - 05">Uttarakhand</option>
+					</select>
+				</div>
+				<label class="control-label col-md-2" style = "font-weight: bold;" for="pincode">Pincode:</label>
+				<div class="col-md-4">
+					<input autocomplete="off" type="text" class="form-control" maxlength="6" name="pincode" id="pincode" placeholder="Pincode" required>
+				</div>
+			</div>
+			<div class="form-group row">
+				<label class="control-label col-md-2" style = "font-weight: bold;" for="phone1">Phone 1:</label>
+				<div class="col-md-4">
+					<input autocomplete="off" type="text" class="form-control" maxlength="10" name="phone1" id="phone1" placeholder="Phone 1" required>
+				</div> 
+				<label class="control-label col-md-2" style = "font-weight: bold;" for="phone2">Phone 2:</label>
+				<div class="col-md-4">
+					<input autocomplete="off" type="text" class="form-control" maxlength="10" name="phone2" id="phone2" placeholder="Phone 2" required>
+				</div>
+			</div>
+			<div class="form-group row">
+				<label class="control-label col-md-2" style = "font-weight: bold;" for="gstin">GSTIN:</label>
+				<div class="col-md-4">
+					<input autocomplete="off" type="text" class="form-control" maxlength="15" name="gstin" id="gstin" placeholder="GSTIN" required>
+				</div>
+				<label class="control-label col-md-2" style = "font-weight: bold;" for="pan_no">Pan No.:</label>
+				<div class="col-md-4">
+					<input autocomplete="off" type="text" class="form-control" name="pan_no" id="pan_no" placeholder="Pan No." required>
+				</div>
+			</div>
+			<div class="form-group row"> 
+				<label class="control-label col-md-2" style = "font-weight: bold;" for="email">Email:</label>
+				<div class="col-md-4">
+					<input autocomplete="off" type="email" class="form-control" maxlength="50" name="email" id="email" placeholder="Email" required>
+				</div>
+				<label class="control-label col-md-2" style = "font-weight: bold;" for="nickname">Nickname:</label>
+				<div class="col-md-4">
+					<input autocomplete="off" type="text" class="form-control" maxlength="50" name="nickname" id="nickname" placeholder="Nickname" required>
+				</div>
+			</div>
+			<div class="form-group row">
+				<div class="col-md-10">
+					<button type="submit" class="btn btn-primary">Add</button>
+				</div>
+			</div>
+		</form>
+	{% if error_message %}
+	<div class="alert alert-danger" role="alert">
+		<strong>Error!!</strong> {{ error_message }}
+	</div>
+	{% endif %}
+	{% if success_message %}
+	<div class="alert alert-success" role="alert">
+		<strong>Success!!</strong> {{ success_message }}
+	</div>
+	{% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,249 @@
+{% extends 'base.html' %}
+{% block content %}
+<script>
+var check_count = 0
+function post() {
+    method = "post";
+
+    // The rest of this code assumes you are not using a library.
+    // It can be made less wordy if you use one.
+    var params = []
+    params.push({
+	"csrfmiddlewaretoken": Cookies.get('csrftoken')
+	});
+	params.push({
+	"client_name": document.getElementById('client').value
+	});
+	params.push({
+	"date": document.getElementById('date').value
+	});
+	params.push({
+	"remaining_payment": document.getElementById('amount').value
+	});
+	params.push({
+	"check_no": document.getElementById('check_no').value
+	});
+	params.push({
+	"bank_name": document.getElementById('bank_name').value
+	});
+	params.push({
+	"check_date": document.getElementById('check_date').value
+	});
+	trContents=document.getElementById('tableDiv').getElementsByTagName('tr');
+    if(trContents.length>1)
+    {
+	    var tbl = []
+        for(i=1;i<trContents.length;i++)
+		{
+			if(trContents[i].innerHTML && trContents[i].getElementsByTagName('td')[0].getElementsByTagName('input')[0].checked == true)
+			{
+			    var tbr = []
+	            tbr.push({
+                "bill_no": trContents[i].getElementsByTagName('td')[1].innerHTML
+	            });
+				tbl.push({
+			    "key":trContents[i].getElementsByTagName('td')[1].innerHTML,"value": tbr
+			    });
+			}
+		}
+		params.push({
+		"table": tbl
+		});
+	}
+	//alert(params);
+	//alert(JSON.stringify(params))
+	var xhttp = new XMLHttpRequest();
+    xhttp.open("POST", "{% url 'payment_app:add_payment_bill' %}", true);
+    xhttp.setRequestHeader("Content-type", "application/json");
+	xhttp.setRequestHeader("X-CSRFToken", Cookies.get('csrftoken'));
+    xhttp.send(JSON.stringify(params));
+	xhttp.onreadystatechange = function() {
+	document.open();
+	document.write(this.responseText);
+	document.close();
+    }
+	}
+	function checkChange(checkbox) {
+    if(checkbox.checked == true){
+        if(document.getElementById("amount").value < parseFloat(checkbox.parentNode.parentNode.getElementsByTagName('td')[6].innerHTML))
+		{
+		    alert('Cant add this challan as amount is less')
+			checkbox.checked = false
+			return
+		}
+		check_count = check_count +1
+		document.getElementById("amount").value = parseFloat(document.getElementById("amount").value) - parseFloat(checkbox.parentNode.parentNode.getElementsByTagName('td')[6].innerHTML)
+		document.getElementById("selected_amount").value = parseFloat(document.getElementById("selected_amount").value) + parseFloat(checkbox.parentNode.parentNode.getElementsByTagName('td')[6].innerHTML)
+    }else{
+	    check_count = check_count -1
+		document.getElementById("amount").value = parseFloat(document.getElementById("amount").value) + parseFloat(checkbox.parentNode.parentNode.getElementsByTagName('td')[6].innerHTML)
+		document.getElementById("selected_amount").value = parseFloat(document.getElementById("selected_amount").value) - parseFloat(checkbox.parentNode.parentNode.getElementsByTagName('td')[6].innerHTML)
+    }
+	if(check_count>0)
+	{
+	    document.getElementById("amount").disabled = true
+	}
+	else
+	{
+	    document.getElementById("amount").disabled = false
+	}
+    }
+	function check_change(radiobox){
+	if(radiobox.checked == true){
+	    document.getElementById('check_no').disabled = false
+		document.getElementById('bank_name').disabled = false
+		document.getElementById('check_date').disabled = false
+	}
+	}
+	function check_change2(radiobox){
+	if(radiobox.checked == true){
+	    document.getElementById('check_no').disabled = true
+		document.getElementById('bank_name').disabled = true
+		document.getElementById('check_date').disabled = true
+		document.getElementById('check_no').value = ""
+		document.getElementById('bank_name').value = ""
+		document.getElementById('check_date').value = ""
+	}
+	}
+</script>
+<div class="container-fluid" style = "height: 91.5%;padding-top: 1rem;background-color: #E6E6E6;">
+        <form action="{% url 'payment_app:get_challans_bill' %}" method = "post">
+		{% csrf_token %}
+			<div class="form-group row">
+				<label class="control-label col-md-1" style = "font-weight: bold;" for="date">Date:</label>
+				<div class="col-md-3">
+				{% if  datetime_chosen %}
+				    <input autocomplete="off" type="datetime-local" value = "{{datetime_chosen}}" class="form-control" name="date" id="date" placeholder="Date" required>
+				{% elif datetime %}
+					<input autocomplete="off" type="datetime-local" value = "{{datetime}}" class="form-control" name="date" id="date" placeholder="Date" required>
+                {% else %}
+				    <input autocomplete="off" type="datetime-local" class="form-control" name="date" id="date" placeholder="Date" required>
+				{% endif %}
+				</div>
+				<label class="control-label col-md-2" style = "font-weight: bold;" for="client">Client Name:</label>
+				<div class="col-md-3">
+					<select class="form-control" id="client" name="client">
+					    {% if clients %}
+						    {% for client in clients %}
+							    {% if client_chosen and client_chosen == client.client_name %}
+                                    <option value = "{{client.client_name}}" selected>{{ client.client_name }}--{{ client.nickname }}</option>
+								{% else %}
+							        <option value = "{{client.client_name}}">{{ client.client_name }}--{{ client.nickname }}</option>
+								{% endif %}
+							{% endfor %}
+						{% endif %}
+					</select>
+				</div>
+				<label class="control-label col-md-1" style = "font-weight: bold;" for="amount">Amount:</label>
+				<div class="col-md-2">
+					{% if amount_chosen %}
+						<input autocomplete="off" type="number" class="form-control" value={{amount_chosen}} name="amount" id="amount" placeholder="Amount" readonly required>
+					{% else %}
+						<input autocomplete="off" type="number" class="form-control" value=0 name="amount" id="amount" placeholder="Amount" required>
+					{% endif %}
+				</div>
+			</div>
+			<div class="form-group row">
+				<div class="col-md-10">
+					<button type="submit" class="btn btn-primary">Add</button>
+				</div>
+			</div>
+		</form>
+		<div class="panel panel-default" id="tableDiv">
+    <div class="panel-body" style="max-height: 170px;overflow-y: scroll;">
+    <div class="table-responsive">
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>checkbox</th>
+                    <th>bill_no</th>
+					<th>Date</th>
+					<th>gross_amount</th>
+					<th>GST</th>
+					<th>other_amount</th>
+					<th>Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+			{% if bills %}
+			    {% for bill in bills %}
+                    <tr>
+					    {% if bill.checked %}
+                            <td style = "padding:0px;"><input onchange="checkChange(this);" type = "checkbox" checked></input></td>
+						{% else %}
+						    <td style = "padding:0px;"><input onchange="checkChange(this);" type = "checkbox"></input></td>
+						{% endif %}
+                        <td style = "padding:0px;">{{bill.bill_no}}</td>
+					    <td style = "padding:0px;">{{bill.date}}</td>
+						<td style = "padding:0px;">{{bill.gross_amount}}</td>
+						<td style = "padding:0px;">{{bill.gst}}</td>
+						<td style = "padding:0px;">{{bill.other_amount}}</td>
+					    <td style = "padding:0px;">{{bill.total_amount}}</td>
+                </tr>					
+ 			    {% endfor %}
+			{% endif %}
+            </tbody>
+        </table>
+    </div>
+	</div>
+    </div>
+	<div class="form-group row">
+		<div class="col-md-4">
+            <label class="radio-inline"><input type="radio" name="optradio" onchange = 'check_change2(this)' checked>CASH</label>
+            <label class="radio-inline"><input type="radio" name="optradio" onchange = 'check_change(this)'>CHECK</label>
+		</div>
+	</div>
+	<div class="form-group row">
+		<label class="control-label col-md-2" style = "font-weight: bold;" for="check_no">Check No:</label>
+		    <div class="col-md-4">
+				<input autocomplete="off" type="text" class="form-control" name="check_no" id="check_no" placeholder="Check No" required disabled>
+		    </div>
+		<label class="control-label col-md-2" style = "font-weight: bold;" for="bank_name">Bank Name:</label>
+		    <div class="col-md-4">
+				<input autocomplete="off" type="text" class="form-control" list="banks" name="bank_name" id="bank_name" placeholder="Bank Name" required disabled>
+				<datalist id="banks">
+					{% if banks %}
+					    {% for bank in banks %}
+					        <option>{{bank}}</option>
+						{% endfor %}
+					{% endif %}
+				</datalist>
+			</div>
+	</div>
+	<div class="form-group row">
+		<label class="control-label col-md-2" style = "font-weight: bold;" for="check_date">Check Date:</label>
+		<div class="col-md-4">
+			<input autocomplete="off" type="date" class="form-control" name="check_date" id="check_date" placeholder="Date" required disabled>
+		</div>
+	</div>
+	<div class="form-group row">
+		<div class="col-md-10">
+			<button type="button" onclick = "post()" class="btn btn-primary">Save</button>
+		</div>
+	</div>
+	<div class="form-group row">
+	    <label class="control-label col-md-2" style = "font-weight: bold;" for="total_amount">Total Amount:</label>
+		    <div class="col-md-4">
+				{% if total_amount %}
+					<input autocomplete="off" type="number" value = "{{total_amount}}" class="form-control" name="total_amount" id="total_amount" disabled required>
+                {% else %}
+				    <input autocomplete="off" type="number" value = 0 class="form-control" name="total_amount" id="total_amount" disabled required>
+				{% endif %}
+		    </div>
+		<label class="control-label col-md-2" style = "font-weight: bold;" for="selected_amount">Selected Amount:</label>
+		    <div class="col-md-4">
+				    <input autocomplete="off" type="number" value = 0 class="form-control" name="selected_amount" id="selected_amount" disabled required>
+		    </div>
+	</div>
+	{% if error_message %}
+	<div class="alert alert-danger" role="alert">
+		<strong>Error!!</strong> {{ error_message }}
+	</div>
+	{% endif %}
+	{% if success_message %}
+	<div class="alert alert-success" role="alert">
+		<strong>Success!!</strong> {{ success_message }}
+	</div>
+	{% endif %}
+</div>
+{% endblock %}

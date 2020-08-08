@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container-fluid" style = "height: 91.5%;padding-top: 1rem;background-color: #E6E6E6;">
+        <form action="{% url 'items_app:add_items' %}" method = "post">
+		{% csrf_token %}
+			<div class="form-group row">
+				<label class="control-label col-md-2" style = "font-weight: bold;" for="item_name">Item Name:</label>
+				<div class="col-md-4">
+					<input autocomplete="off" type="text" class="form-control" name="item_name" id="items_name" placeholder="Items Name" required>
+				</div>
+			</div>
+            <div class="form-group row">
+				<label class="control-label col-md-2" style = "font-weight: bold;" for="exampleFormControlSelect1">Items Group Name:</label>
+				<div class="col-md-4">
+					<select class="form-control" id="exampleFormControlSelect1" name="group_name">
+					    {% if item_groups %}
+						    {% for item_group in item_groups %}
+							    {% if item_grp and item_grp.item_group_name == item_group.item_group_name %}
+                                    <option selected>{{ item_group.item_group_name }}</option>
+								{% else %}
+							        <option>{{ item_group.item_group_name }}</option>
+								{% endif %}
+							{% endfor %}
+						{% endif %}
+					</select>
+				</div>
+			</div>
+			<div class="form-group row"> 
+				<label class="control-label col-md-2" style = "font-weight: bold;" for="unit">Unit:</label>
+				<div class="col-md-4">
+					<select class="form-control" id="unit" name="unit">
+                        <option selected>Inches</option>
+						<option>Sheets</option>
+						<option>Pieces</option>
+					</select>
+				</div>
+			</div>
+			<div class="form-group row">
+				<div class="col-md-10">
+					<button type="submit" class="btn btn-primary">Add</button>
+				</div>
+			</div>
+		</form>
+	{% if error_message %}
+	<div class="alert alert-danger" role="alert">
+		<strong>Error!!</strong> {{ error_message }}
+	</div>
+	{% endif %}
+	{% if success_message %}
+	<div class="alert alert-success" role="alert">
+		<strong>Success!!</strong> {{ success_message }}
+	</div>
+	{% endif %}
+</div>
+{% endblock %}

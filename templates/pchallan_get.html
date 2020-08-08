@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<script>
+function sortTable(r) {
+  var table, rows, switching, i, x, y, shouldSwitch;
+  table = document.getElementById("myTable");
+  switching = true;
+  /*Make a loop that will continue until
+  no switching has been done:*/
+  while (switching) {
+    //start by saying: no switching is done:
+    switching = false;
+    rows = table.getElementsByTagName("TR");
+    /*Loop through all table rows (except the
+    first, which contains table headers):*/
+    for (i = 1; i < (rows.length - 1); i++) {
+      //start by saying there should be no switching:
+      shouldSwitch = false;
+      /*Get the two elements you want to compare,
+      one from current row and one from the next:*/
+      x = rows[i].getElementsByTagName("TD")[r];
+      y = rows[i + 1].getElementsByTagName("TD")[r];
+      //check if the two rows should switch place:
+      if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
+        //if so, mark as a switch and break the loop:
+        shouldSwitch= true;
+        break;
+      }
+    }
+    if (shouldSwitch) {
+      /*If a switch has been marked, make the switch
+      and mark that a switch has been done:*/
+      rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+      switching = true;
+    }
+  }
+}
+</script>
+
+<div class="container-fluid" style = "height: 91.5%;padding-top: 1rem;background-color: #E6E6E6;">
+<form action="{% url 'pchallan_app:filter_date' %}" method = "post">
+		{% csrf_token %}
+			<div class="form-group row">
+				<label class="control-label col-md-2" style = "font-weight: bold;" for="from">From:</label>
+				<div class="col-md-2">
+					<input autocomplete="off" type="datetime-local" class="form-control" name="from" id="from" placeholder="Date" required>				
+				</div>
+				<label class="control-label col-md-2" style = "font-weight: bold;" for="to">To:</label>
+				<div class="col-md-2">
+					<input autocomplete="off" type="datetime-local" class="form-control" name="to" id="to" placeholder="Date" required>				
+				</div>
+				<div class="col-md-2">
+					<button type="submit" class="btn btn-primary">Sort</button>
+				</div>
+			</div>
+			</form>
+<form action="{% url 'pchallan_app:filter_client' %}" method = "post">
+		{% csrf_token %}
+			<div class="form-group row">
+				<label class="control-label col-md-2" style = "font-weight: bold;" for="client_name">Client:</label>
+				<div class="col-md-4">
+				<select class="form-control" id="client_name" name="client_name">
+					    {% if clients %}
+						    {% for client in clients %}
+							    {% if client_grp and client_grp.client_name == client.client_name %}
+                                    <option value = "{{client.client_name}}" selected>{{ client.client_name }}--{{ client.nickname }}</option>
+								{% else %}
+							        <option value = "{{client.client_name}}">{{ client.client_name }}--{{ client.nickname }}</option>
+								{% endif %}
+							{% endfor %}
+						{% endif %}
+					</select>
+				</div>
+				<div class="col-md-2">
+					<button type="submit" class="btn btn-primary">Sort</button>
+				</div>
+			</div>
+			</form>
+<form action="{% url 'pchallan_app:filter_challan_no' %}" method = "post">
+		{% csrf_token %}
+			<div class="form-group row">
+				<label class="control-label col-md-2" style = "font-weight: bold;" for="challan_no">Challan No:</label>
+				<div class="col-md-2">
+					<input autocomplete="off" type="text" class="form-control" name="challan_no" id="challan_no" placeholder="Challan No" required>				
+				</div>
+				<div class="col-md-2">
+					<button type="submit" class="btn btn-primary">Sort</button>
+				</div>
+			</div>
+		</form>
+        <div class="panel-body">
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped" id="myTable">
+            <thead>
+                <tr>
+		     		<th>Challan No</th>
+					<th>Date</th>
+                    <th>Client Name</th>
+					<th>Gross Amount</th>
+					<th>GST</th>
+					<th>Other Amount</th>
+					<th>Total Amount</th>
+					<th>Recieved</th>
+                </tr>
+            </thead>
+            <tbody>
+			{% if pchallans %}
+			    {% for pchallan in pchallans %}
+                    <tr>
+					    <td>{{pchallan.challan_no}}</td>
+						<td>{{pchallan.date}}</td>
+					    <td>{{pchallan.client_name.client_name}}</td>
+						<td>{{pchallan.gross_amount}}</td>
+						<td>{{pchallan.gst}}</td>
+						<td>{{pchallan.other_amount}}</td>
+						<td>{{pchallan.total_amount}}</td>
+						<td>{{pchallan.recieved}}</td>
+                    </tr>					
+ 			    {% endfor %}
+			{% endif %}
+            </tbody>
+        </table>
+    </div>
+	</div>
+</div>
+{% endblock %}

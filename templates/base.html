@@ -1,0 +1,168 @@
+{% load staticfiles %}
+
+<!DOCTYPE html>
+<html style="height: 100%; width: 100%; margin: 0;">
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>Accounts</title>
+    <!-- Core CSS - Include with every page -->
+    <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
+</head>
+<body style="height: 100%; width: 100%; margin: 0;">
+<nav class="navbar navbar-toggleable-md  navbar-inverse bg-inverse" style="height:54px;">
+    <button aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"
+            class="navbar-toggler navbar-toggler-right" data-target="#navbarSupportedContent" data-toggle="collapse"
+            type="button">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <a class="navbar-brand py-0" href="/" style="font-size: 1.4rem;">P.K. Scan Graphics</a>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav mr-auto">
+        </ul>
+        <ul class="navbar-nav">
+            <li class="nav-item active btn-group" style='padding-left:10px;padding-right:10px;'>
+                <a aria-expanded="false" aria-haspopup="true" class="dropdown-toggle nav-link"
+                   data-toggle="dropdown" id="dropdownMenu1"
+                   style="background-color: #292b2c; padding:0px; -webkit-appearance: none;" type="button">
+                    Items Group
+                </a>
+                <div aria-labelledby="dropdownMenu1" class="dropdown-menu">
+                    <a class="dropdown-item" href="{% url 'items_group_app:add_page' %}">Add</a>
+                    <a class="dropdown-item" href="{% url 'items_group_app:modify_page' %}">Modify</a>
+                    <a class="dropdown-item" href="{% url 'items_group_app:delete_page' %}">Delete</a>
+                    <a class="dropdown-item" href="{% url 'items_group_app:display_page' %}">Display</a>
+                </div>
+            </li>
+            <li class="nav-item active btn-group" style='padding-left:10px;padding-right:10px;'>
+                <a aria-expanded="false" aria-haspopup="true" class="dropdown-toggle nav-link"
+                   data-toggle="dropdown" id="dropdownMenu2"
+                   style="background-color: #292b2c; padding:0px; -webkit-appearance: none;" type="button">
+                    Client
+                </a>
+                <div aria-labelledby="dropdownMenu2" class="dropdown-menu">
+                    <a class="dropdown-item" href="{% url 'client_app:add_page' %}">Add</a>
+                    <a class="dropdown-item" href="{% url 'client_app:modify_page' %}">Modify</a>
+                    <a class="dropdown-item" href="{% url 'client_app:delete_page' %}">Delete</a>
+                    <a class="dropdown-item" href="{% url 'client_app:display_page' %}">Display</a>
+                </div>
+            </li>
+            <li class="nav-item active btn-group" style='padding-left:10px;padding-right:10px;'>
+                <a aria-expanded="false" aria-haspopup="true" class="dropdown-toggle nav-link"
+                   data-toggle="dropdown" id="dropdownMenu3"
+                   style="background-color: #292b2c; padding:0px; -webkit-appearance: none;" type="button">
+                    Users
+                </a>
+                <div aria-labelledby="dropdownMenu3" class="dropdown-menu">
+                    <a class="dropdown-item" href="{% url 'user_app:add_page' %}">Add</a>
+                    <a class="dropdown-item" href="{% url 'user_app:delete_page' %}">Delete</a>
+                </div>
+            <li class="nav-item active btn-group" style='padding-left:10px;padding-right:10px;'>
+                <a aria-expanded="false" aria-haspopup="true" class="dropdown-toggle nav-link"
+                   data-toggle="dropdown" id="dropdownMenu2"
+                   style="background-color: #292b2c; padding:0px; -webkit-appearance: none;" type="button">
+                    Items
+                </a>
+                <div aria-labelledby="dropdownMenu2" class="dropdown-menu">
+                    <a class="dropdown-item" href="{% url 'items_app:add_page' %}">Add</a>
+                    <a class="dropdown-item" href="{% url 'items_app:modify_page' %}">Modify</a>
+                    <a class="dropdown-item" href="{% url 'items_app:delete_page' %}">Delete</a>
+                    <a class="dropdown-item" href="{% url 'items_app:display_page' %}">Display</a>
+                </div>
+            </li>
+            <li class="nav-item active btn-group" style='padding-left:10px;padding-right:10px;'>
+                <a aria-expanded="false" aria-haspopup="true" class="dropdown-toggle nav-link"
+                   data-toggle="dropdown" id="dropdownMenu2"
+                   style="background-color: #292b2c; padding:0px; -webkit-appearance: none;" type="button">
+                    Challan(P)
+                </a>
+                <div aria-labelledby="dropdownMenu2" class="dropdown-menu">
+                    <a class="dropdown-item" href="{% url 'pchallan_app:add_page' %}">Add</a>
+                    <a class="dropdown-item" href="{% url 'pchallan_app:modify_page' %}">Modify</a>
+                    <a class="dropdown-item" href="{% url 'pchallan_app:modify_bill_page' %}">Modify Bill</a>
+                    <a class="dropdown-item" href="{% url 'pchallan_app:delete_page' %}">Delete</a>
+                    <a class="dropdown-item" href="{% url 'pchallan_app:display_page' %}">Display</a>
+                </div>
+            </li>
+            <li class="nav-item active btn-group" style='padding-left:10px;padding-right:10px;'>
+                <a aria-expanded="false" aria-haspopup="true" class="dropdown-toggle nav-link"
+                   data-toggle="dropdown" id="dropdownMenu2"
+                   style="background-color: #292b2c; padding:0px; -webkit-appearance: none;" type="button">
+                    Challan(F)
+                </a>
+                <div aria-labelledby="dropdownMenu2" class="dropdown-menu">
+                    <a class="dropdown-item" href="{% url 'fchallan_app:add_page' %}">Add</a>
+                    <a class="dropdown-item" href="{% url 'fchallan_app:modify_page' %}">Modify</a>
+                    <a class="dropdown-item" href="{% url 'fchallan_app:modify_bill_page' %}">Modify Bill</a>
+                    <a class="dropdown-item" href="{% url 'fchallan_app:delete_page' %}">Delete</a>
+                    <a class="dropdown-item" href="{% url 'fchallan_app:display_page' %}">Display</a>
+                </div>
+            </li>
+            <li class="nav-item active btn-group" style='padding-left:10px;padding-right:10px;'>
+                <a aria-expanded="false" aria-haspopup="true" class="dropdown-toggle nav-link"
+                   data-toggle="dropdown" id="dropdownMenu2"
+                   style="background-color: #292b2c; padding:0px; -webkit-appearance: none;" type="button">
+                    Payments
+                </a>
+                <div aria-labelledby="dropdownMenu2" class="dropdown-menu">
+                    <a class="dropdown-item" href="{% url 'payment_app:add_page' %}">Add</a>
+                    <a class="dropdown-item" href="{% url 'payment_app:add_page_bill' %}">Add Bill</a>
+                    <a class="dropdown-item" href="{% url 'payment_app:delete_page' %}">Delete</a>
+                    <a class="dropdown-item" href="{% url 'payment_app:payment_print' %}">Print</a>
+                </div>
+            </li>
+            <li class="nav-item active btn-group" style='padding-left:10px;padding-right:10px;'>
+                <a aria-expanded="false" aria-haspopup="true" class="dropdown-toggle nav-link"
+                   data-toggle="dropdown" id="dropdownMenu2"
+                   style="background-color: #292b2c; padding:0px; -webkit-appearance: none;" type="button">
+                    Billing
+                </a>
+                <div aria-labelledby="dropdownMenu2" class="dropdown-menu">
+                    <a class="dropdown-item" href="{% url 'bill_app:add_page' %}">Add</a>
+                    <a class="dropdown-item" href="{% url 'bill_app:print_page' %}">Print</a>
+                    <a class="dropdown-item" href="{% url 'bill_app:delete_page' %}">Delete</a>
+                    <a class="dropdown-item" href="{% url 'bill_app:display_page' %}">Display</a>
+                </div>
+            </li>
+            <li class="nav-item active btn-group" style='padding-left:10px;padding-right:10px;'>
+                <a aria-expanded="false" aria-haspopup="true" class="dropdown-toggle nav-link"
+                   data-toggle="dropdown" id="dropdownMenu2"
+                   style="background-color: #292b2c; padding:0px; -webkit-appearance: none;" type="button">
+                    Reports
+                </a>
+                <div aria-labelledby="dropdownMenu2" class="dropdown-menu">
+                    <a class="dropdown-item" href="{% url 'report_app:report_page' %}">Reports</a>
+                </div>
+            </li>
+            <li class="nav-item active btn-group" style='padding-left:10px;padding-right:10px;'>
+                <a aria-expanded="false" aria-haspopup="true" class="dropdown-toggle nav-link"
+                   data-toggle="dropdown" id="dropdownMenu2"
+                   style="background-color: #292b2c; padding:0px; -webkit-appearance: none;" type="button">
+                    Slip
+                </a>
+                <div aria-labelledby="dropdownMenu2" class="dropdown-menu">
+                    <a class="dropdown-item" href="{% url 'slips_app:add_page' %}">Add</a>
+                    <a class="dropdown-item" href="{% url 'slips_app:modify_page' %}">Modify</a>
+                    <a class="dropdown-item" href="{% url 'slips_app:slip_dashboard' %}">Slips Dashboard</a>
+                    <a class="dropdown-item" href="{% url 'slips_app:delete_page' %}">Delete</a>
+                </div>
+            </li>
+            <li class="nav-item active" style='padding-left:10px;padding-right:10px;'>
+                <a class="nav-link py-0" href="/logout">Logout</a>
+            </li>
+        </ul>
+    </div>
+</nav>
+{% block content %}
+{% endblock %}
+<!-- Core Scripts - Include with every page -->
+<script src="{% static 'js/jquery-3.2.1.min.js' %}"></script>
+<script src="{% static 'js/popper.min.js' %}"></script>
+<script src="{% static 'js/bootstrap.min.js' %}"></script>
+<script src="{% static 'js/js.cookie.js' %}"></script>
+{% block javascript %}
+{% endblock %}
+
+
+</body>
+</html>
