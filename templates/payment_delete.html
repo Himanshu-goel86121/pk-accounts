@@ -1,8 +1,28 @@
 {% extends 'base.html' %}
 
 {% block content %}
+<script>
+	function validate() {
+		var myJSONList = (("{{payments_json}}").replace(/&(l|g|quo)t;/g, function(a,b){
+                return {
+                    l   : '<',
+                    g   : '>',
+                    quo : '"'
+                }[b];
+            }));
+		payments = JSON.parse(myJSONList)
+		payment_no = document.getElementById('payment').value
+		var payment;
+		for (i = 0; i < payments.length; i++){
+			if (payments[i].pk.toString() == payment_no){
+				payment = payments[i]
+			}
+		}
+        return confirm('Do you really want to delete payment no '.concat(payment.pk).concat(' belonging to ').concat(payment.fields.client_name));
+	}
+</script>
 <div class="container-fluid" style = "height: 91.5%;padding-top: 1rem;background-color: #E6E6E6;">
-        <form action="{% url 'payment_app:delete_payment' %}" method = "post">
+	<form action="{% url 'payment_app:delete_payment' %}" onsubmit="return validate()" method = "post">
 		{% csrf_token %}
 			<div class="form-group row">
 				<label class="control-label col-md-2" style = "font-weight: bold;" for="payment">Payment No:</label>

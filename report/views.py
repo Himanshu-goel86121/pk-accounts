@@ -858,7 +858,7 @@ def due_list_bill_get(request):
         pchals = bill.objects.filter(client_name=clients[j].client_name).filter(deleted=False).filter(
             date__range=(request.POST['from'], request.POST['to']))
         chals = pchals
-        summ = 0
+        summ =  -1 * clients[j].balance
         chal_len = len(challans)
         for i in range(len(chals)):
             if (chals[i].total_amount > chals[i].recieved):

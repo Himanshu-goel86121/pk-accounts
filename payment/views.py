@@ -16,6 +16,7 @@ from itertools import chain
 from logs.models import logs
 from pchallan.models import pchallan
 from users.models import Employee
+from django.core import serializers
 
 from .models import payment
 
@@ -121,7 +122,8 @@ def add_payment(request):
 @login_required
 def payment_delete(request):
     payments = list(payment.objects.all())
-    return render(request, "payment_delete.html", {"payments": payments})
+    payments_json = serializers.serialize('json', payments)
+    return render(request, "payment_delete.html", {"payments": payments, "payments_json": payments_json})
 
 
 @login_required
@@ -211,6 +213,103 @@ def delete_payment(request):
             return render(request, 'payment_delete.html',
                           {"payments": payments, 'error_message': "Some error occured", })
 
+@login_required
+def payment_display(request):
+    payments = list(payment.objects.order_by('payment_no'))
+    for pay in payments:
+        chal1 = fchallan.objects.filter(payment_no=pay.payment_no).filter(bill_no__isnull = True)
+        chal2 = pchallan.objects.filter(payment_no=pay.payment_no).filter(bill_no__isnull = True)
+        bills = bill.objects.filter(payment_no=pay.payment_no)
+        for chal in chal1:
+            chal.challan_no = str(chal.challan_no) + ' - F'
+        for chal in chal2:
+            chal.challan_no = str(chal.challan_no) + ' - P'
+        for bil in bills:
+            bil.bill_no = str(bil.bill_no) + ' - B'
+        chals = list(chain(chal1, chal2))
+        bill_chal_no = []
+        for chal in chals:
+            bill_chal_no.append(chal.challan_no)
+        for bil in bills:
+            bill_chal_no.append(bil.bill_no)
+        pay.effected = ', '.join(bill_chal_no)
+        chal_pay1 = pchallan.objects.filter(payment_no=pay.payment_no).filter(bill_no__isnull=True)
+        chal_pay2 = fchallan.objects.filter(payment_no=pay.payment_no).filter(bill_no__isnull=True)
+        bill_pay = bill.objects.filter(payment_no=pay.payment_no)
+        chal_pay = list(chain(chal_pay1, chal_pay2, bill_pay))
+        amount_sum = 0
+        for chal in chal_pay:
+            amount_sum += chal.total_amount
+        amount_sum = amount_sum + pay.remaining_payment
+        pay.tamount = amount_sum
+    clients = list(client.objects.all().order_by('client_name'))
+    return render(request, "payment_get.html", {"payments": payments, "clients": clients})
+
+@login_required
+def filter_date(request):
+    payments = list(
+        payment.objects.filter(date__range=(request.POST['from'], request.POST['to'])).order_by(
+            'payment_no'))
+    for pay in payments:
+        chal1 = fchallan.objects.filter(payment_no=pay.payment_no).filter(bill_no__isnull = True)
+        chal2 = pchallan.objects.filter(payment_no=pay.payment_no).filter(bill_no__isnull = True)
+        bills = bill.objects.filter(payment_no=pay.payment_no)
+        for chal in chal1:
+            chal.challan_no = str(chal.challan_no) + ' - F'
+        for chal in chal2:
+            chal.challan_no = str(chal.challan_no) + ' - P'
+        for bil in bills:
+            bil.bill_no = str(bil.bill_no) + ' - B'
+        chals = list(chain(chal1, chal2))
+        bill_chal_no = []
+        for chal in chals:
+            bill_chal_no.append(chal.challan_no)
+        for bil in bills:
+            bill_chal_no.append(bil.bill_no)
+        pay.effected = ', '.join(bill_chal_no)
+        chal_pay1 = pchallan.objects.filter(payment_no=pay.payment_no).filter(bill_no__isnull=True)
+        chal_pay2 = fchallan.objects.filter(payment_no=pay.payment_no).filter(bill_no__isnull=True)
+        bill_pay = bill.objects.filter(payment_no=pay.payment_no)
+        chal_pay = list(chain(chal_pay1, chal_pay2, bill_pay))
+        amount_sum = 0
+        for chal in chal_pay:
+            amount_sum += chal.total_amount
+        amount_sum = amount_sum + pay.remaining_payment
+        pay.tamount = amount_sum
+    clients = list(client.objects.all().order_by('client_name'))
+    return render(request, "payment_get.html", {"payments": payments, "clients": clients})
+
+@login_required
+def filter_client(request):
+    payments = list(payment.objects.filter(client_name=request.POST['client_name']).order_by('payment_no'))
+    for pay in payments:
+        chal1 = fchallan.objects.filter(payment_no=pay.payment_no).filter(bill_no__isnull = True)
+        chal2 = pchallan.objects.filter(payment_no=pay.payment_no).filter(bill_no__isnull = True)
+        bills = bill.objects.filter(payment_no=pay.payment_no)
+        for chal in chal1:
+            chal.challan_no = str(chal.challan_no) + ' - F'
+        for chal in chal2:
+            chal.challan_no = str(chal.challan_no) + ' - P'
+        for bil in bills:
+            bil.bill_no = str(bil.bill_no) + ' - B'
+        chals = list(chain(chal1, chal2))
+        bill_chal_no = []
+        for chal in chals:
+            bill_chal_no.append(chal.challan_no)
+        for bil in bills:
+            bill_chal_no.append(bil.bill_no)
+        pay.effected = ', '.join(bill_chal_no)
+        chal_pay1 = pchallan.objects.filter(payment_no=pay.payment_no).filter(bill_no__isnull=True)
+        chal_pay2 = fchallan.objects.filter(payment_no=pay.payment_no).filter(bill_no__isnull=True)
+        bill_pay = bill.objects.filter(payment_no=pay.payment_no)
+        chal_pay = list(chain(chal_pay1, chal_pay2, bill_pay))
+        amount_sum = 0
+        for chal in chal_pay:
+            amount_sum += chal.total_amount
+        amount_sum = amount_sum + pay.remaining_payment
+        pay.tamount = amount_sum
+    clients = list(client.objects.all().order_by('client_name'))
+    return render(request, "payment_get.html", {"payments": payments, "clients": clients})
 
 @login_required
 def payment_add_bill(request):

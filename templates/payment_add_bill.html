@@ -137,7 +137,7 @@ function post() {
 				<label class="control-label col-md-1" style = "font-weight: bold;" for="amount">Amount:</label>
 				<div class="col-md-2">
 					{% if amount_chosen %}
-						<input autocomplete="off" type="number" class="form-control" value={{amount_chosen}} name="amount" id="amount" placeholder="Amount" readonly required>
+						<input autocomplete="off" type="number" class="form-control" value={{amount_chosen}} name="amount" id="amount" placeholder="Amount" readonly="true" required>
 					{% else %}
 						<input autocomplete="off" type="number" class="form-control" value=0 name="amount" id="amount" placeholder="Amount" required>
 					{% endif %}

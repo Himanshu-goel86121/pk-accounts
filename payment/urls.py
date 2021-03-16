@@ -14,4 +14,7 @@ urlpatterns = [
     path(r'add_payment_bill/', views.add_payment_bill, name='add_payment_bill'),
     path(r'payment_print/', views.payment_print, name='payment_print'),
     path(r'print_payment/', views.print_payment, name='print_payment'),
+    path(r'filter_date/', views.filter_date, name='filter_date'),
+    path(r'filter_client/', views.filter_client, name='filter_client'),
+	path(r'display/', views.payment_display, name='display_page'),
 ]
