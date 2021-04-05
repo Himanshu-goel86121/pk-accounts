@@ -20,6 +20,7 @@ from .models import fchallan, fjob
 from django.core.mail import EmailMessage
 from email.mime.application import MIMEApplication
 
+
 @login_required
 def fchallan_add(request):
     item = list(items.objects.all().order_by('item_name'))
@@ -31,7 +32,8 @@ def fchallan_add(request):
 
 @login_required
 def fchallan_delete(request):
-    fchallans = list(fchallan.objects.filter(deleted=False).filter(bill_no=None).order_by('challan_no'))
+    fchallans = list(
+        fchallan.objects.filter(deleted=False).filter(bill_no=None).filter(payment_no=None).order_by('challan_no'))
     fchallans_json = serializers.serialize('json', fchallans)
     return render(request, "fchallan_delete.html", {"fchallans": fchallans, "fchallans_json": fchallans_json})
 
@@ -88,10 +90,6 @@ def add_bill(request):
                                gross_amount=dictt['gross_amount'], other_amount=dictt['other_amount'],
                                total_amount=dictt['total_amount'], gst=dictt['gst'], deleted=False)
             challan.save()
-            try:
-                print("challan no ", challan.challan_no)
-            except:
-                pass
             # challan.delete()
             sum = 0.0
             for i in range(len(dictt['table'])):
@@ -102,8 +100,8 @@ def add_bill(request):
                            job_date=dictt['table'][i]['job_date'], job_name=dictt['table'][i]['job_name'].strip(),
                            item=itemm, quantity=dictt['table'][i]['quantity'], unit=dictt['table'][i]['unit'],
                            rate=dictt['table'][i]['rate'], amount=(
-                                float(dictt['table'][i]['width']) * float(dictt['table'][i]['height']) * float(
-                            dictt['table'][i]['rate']) * float(dictt['table'][i]['quantity'])))
+                            float(dictt['table'][i]['width']) * float(dictt['table'][i]['height']) * float(
+                        dictt['table'][i]['rate']) * float(dictt['table'][i]['quantity'])))
                 sum += float(job.gst) + job.amount
                 job.save()
             if (int(sum) != int(float(challan.total_amount))):
@@ -121,7 +119,11 @@ def add_bill(request):
             headers={'Message-ID': 'foo'},
             attachments=[pdf_mime]
         )
-        email.send()
+        try:
+            email.send()
+        except:
+            print("Unable to send the email")
+            pass
         http = HttpResponse(pdf, content_type='application/pdf')
         http['Content-Disposition'] = 'inline; filename="challan.pdf"'
         l = logs(user_name=str(request.user),
@@ -149,8 +151,9 @@ def add_bill(request):
 def fchallan_get_bill(request):
     if ('button_1' in list(request.POST.keys())):
         challan_no = \
-        list(fchallan.objects.filter(deleted=False).filter(single_bill=True).filter(bill_no=request.POST['bill_no']))[
-            0].challan_no
+            list(fchallan.objects.filter(deleted=False).filter(single_bill=True).filter(
+                bill_no=request.POST['bill_no']))[
+                0].challan_no
         item = list(items.objects.all().order_by('item_name'))
         clients = list(client.objects.all().order_by('client_name'))
         dt = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -177,7 +180,8 @@ def fchallan_get_bill(request):
         dt = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         fchallans = list(fchallan.objects.filter(deleted=False).filter(
             single_bill=True).order_by('challan_no'))
-        filtered_fchallans = fchallan.objects.filter(client_name=request.POST['client_name_filter']).filter(deleted=False).filter(
+        filtered_fchallans = fchallan.objects.filter(client_name=request.POST['client_name_filter']).filter(
+            deleted=False).filter(
             single_bill=True).order_by("-challan_no")[:5]
         for filtered_fchallan in filtered_fchallans:
             filtered_fchallan.date = filtered_fchallan.date.strftime('%Y-%m-%d %H:%M:%S')
@@ -278,8 +282,8 @@ def bill_modify_fchallan(request):
                                    '%b %d %Y %I:%M %p'), job_name=dictt['table'][i]['job_name'].strip(), item=itemm,
                                quantity=dictt['table'][i]['quantity'], unit=dictt['table'][i]['unit'],
                                rate=dictt['table'][i]['rate'], amount=(
-                                    float(dictt['table'][i]['width']) * float(dictt['table'][i]['height']) * float(
-                                dictt['table'][i]['rate']) * float(dictt['table'][i]['quantity'])))
+                                float(dictt['table'][i]['width']) * float(dictt['table'][i]['height']) * float(
+                            dictt['table'][i]['rate']) * float(dictt['table'][i]['quantity'])))
                 except:
                     try:
                         job = fjob(job_id=dictt['table'][i]['serial'], width=dictt['table'][i]['width'],
@@ -290,8 +294,8 @@ def bill_modify_fchallan(request):
                                    job_name=dictt['table'][i]['job_name'].strip(), item=itemm,
                                    quantity=dictt['table'][i]['quantity'], unit=dictt['table'][i]['unit'],
                                    rate=dictt['table'][i]['rate'], amount=(
-                                        float(dictt['table'][i]['width']) * float(dictt['table'][i]['height']) * float(
-                                    dictt['table'][i]['rate']) * float(dictt['table'][i]['quantity'])))
+                                    float(dictt['table'][i]['width']) * float(dictt['table'][i]['height']) * float(
+                                dictt['table'][i]['rate']) * float(dictt['table'][i]['quantity'])))
                     except:
                         try:
                             job = fjob(job_id=dictt['table'][i]['serial'], width=dictt['table'][i]['width'],
@@ -301,9 +305,9 @@ def bill_modify_fchallan(request):
                                     '%B %d %Y %I:%M %p'), job_name=dictt['table'][i]['job_name'].strip(), item=itemm,
                                        quantity=dictt['table'][i]['quantity'], unit=dictt['table'][i]['unit'],
                                        rate=dictt['table'][i]['rate'], amount=(
-                                            float(dictt['table'][i]['width']) * float(
-                                        dictt['table'][i]['height']) * float(dictt['table'][i]['rate']) * float(
-                                        dictt['table'][i]['quantity'])))
+                                        float(dictt['table'][i]['width']) * float(
+                                    dictt['table'][i]['height']) * float(dictt['table'][i]['rate']) * float(
+                                    dictt['table'][i]['quantity'])))
                         except:
                             job = fjob(job_id=dictt['table'][i]['serial'], width=dictt['table'][i]['width'],
                                        height=dictt['table'][i]['height'], gst=dictt['table'][i]['gst'],
@@ -312,9 +316,9 @@ def bill_modify_fchallan(request):
                                     '%a %d %Y %H:%M %p'), job_name=dictt['table'][i]['job_name'].strip(), item=itemm,
                                        quantity=dictt['table'][i]['quantity'], unit=dictt['table'][i]['unit'],
                                        rate=dictt['table'][i]['rate'], amount=(
-                                            float(dictt['table'][i]['width']) * float(
-                                        dictt['table'][i]['height']) * float(dictt['table'][i]['rate']) * float(
-                                        dictt['table'][i]['quantity'])))
+                                        float(dictt['table'][i]['width']) * float(
+                                    dictt['table'][i]['height']) * float(dictt['table'][i]['rate']) * float(
+                                    dictt['table'][i]['quantity'])))
                 sum += float(job.gst) + job.amount
                 job.save()
             if (int(sum) != int(float(challan.total_amount))):
@@ -333,7 +337,11 @@ def bill_modify_fchallan(request):
             headers={'Message-ID': 'foo'},
             attachments=[pdf_mime]
         )
-        email.send()
+        try:
+            email.send()
+        except:
+            print("Unable to send the email")
+            pass
         http = HttpResponse(pdf, content_type='application/pdf')
         http['Content-Disposition'] = 'inline; filename="challan.pdf"'
         l = logs(user_name=str(request.user),
@@ -388,7 +396,8 @@ def fchallan_get(request):
         clients = list(client.objects.all().order_by('client_name'))
         dt = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         fchallans = list(fchallan.objects.order_by('challan_no'))
-        filtered_fchallans = fchallan.objects.filter(client_name=request.POST['client_name_filter']).order_by("-challan_no")[
+        filtered_fchallans = fchallan.objects.filter(client_name=request.POST['client_name_filter']).order_by(
+            "-challan_no")[
                              :5]
         for filtered_fchallan in filtered_fchallans:
             filtered_fchallan.date = filtered_fchallan.date.strftime('%Y-%m-%d %H:%M:%S')
@@ -470,11 +479,6 @@ def add_fchallan(request):
                                other_amount=dictt['other_amount'], total_amount=dictt['total_amount'], gst=dictt['gst'],
                                bill_no=None, single_bill=False, deleted=False)
             challan.save()
-            try:
-                print("challan no ", challan.challan_no)
-            except:
-                pass
-            # challan.delete()
             sum = 0
             for i in range(len(dictt['table'])):
                 itemm = get_object_or_404(items, pk=dictt['table'][i]['item'])
@@ -484,13 +488,12 @@ def add_fchallan(request):
                            job_date=dictt['table'][i]['job_date'], job_name=dictt['table'][i]['job_name'].strip(),
                            item=itemm, quantity=dictt['table'][i]['quantity'], unit=dictt['table'][i]['unit'],
                            rate=dictt['table'][i]['rate'], amount=(
-                                float(dictt['table'][i]['rate']) * float(dictt['table'][i]['quantity']) * float(
-                            dictt['table'][i]['width']) * float(dictt['table'][i]['height'])))
+                            float(dictt['table'][i]['rate']) * float(dictt['table'][i]['quantity']) * float(
+                        dictt['table'][i]['width']) * float(dictt['table'][i]['height'])))
                 sum += float(job.gst) + job.amount
                 job.save()
-            if (int(sum) != int(float(challan.total_amount))):
+            if int(sum) != int(float(challan.total_amount)):
                 raise Exception('The total amount is wrong please try again')
-        print('It was successfully')
         pdf = fchallan_pdf(challan.challan_no)
         pdf_mime = MIMEApplication(pdf, _subtype='pdf')
         pdf_mime.add_header('content-disposition', 'attachment')
@@ -504,7 +507,11 @@ def add_fchallan(request):
             headers={'Message-ID': 'foo'},
             attachments=[pdf_mime]
         )
-        email.send()
+        try:
+            email.send()
+        except:
+            print("Unable to send the email")
+            pass
         http = HttpResponse(pdf, content_type='application/pdf')
         http['Content-Disposition'] = 'inline; filename="challan.pdf"'
         l = logs(user_name=str(request.user),
@@ -595,8 +602,8 @@ def modify_fchallan(request):
                                    '%b %d %Y %I:%M %p'), job_name=dictt['table'][i]['job_name'].strip(), item=itemm,
                                quantity=dictt['table'][i]['quantity'], unit=dictt['table'][i]['unit'],
                                rate=dictt['table'][i]['rate'], amount=(
-                                    float(dictt['table'][i]['width']) * float(dictt['table'][i]['height']) * float(
-                                dictt['table'][i]['rate']) * float(dictt['table'][i]['quantity'])))
+                                float(dictt['table'][i]['width']) * float(dictt['table'][i]['height']) * float(
+                            dictt['table'][i]['rate']) * float(dictt['table'][i]['quantity'])))
                 except:
                     try:
                         job = fjob(job_id=dictt['table'][i]['serial'], width=dictt['table'][i]['width'],
@@ -607,8 +614,8 @@ def modify_fchallan(request):
                                    job_name=dictt['table'][i]['job_name'].strip(), item=itemm,
                                    quantity=dictt['table'][i]['quantity'], unit=dictt['table'][i]['unit'],
                                    rate=dictt['table'][i]['rate'], amount=(
-                                        float(dictt['table'][i]['width']) * float(dictt['table'][i]['height']) * float(
-                                    dictt['table'][i]['rate']) * float(dictt['table'][i]['quantity'])))
+                                    float(dictt['table'][i]['width']) * float(dictt['table'][i]['height']) * float(
+                                dictt['table'][i]['rate']) * float(dictt['table'][i]['quantity'])))
                     except:
                         try:
                             job = fjob(job_id=dictt['table'][i]['serial'], width=dictt['table'][i]['width'],
@@ -618,9 +625,9 @@ def modify_fchallan(request):
                                     '%B %d %Y %I:%M %p'), job_name=dictt['table'][i]['job_name'].strip(), item=itemm,
                                        quantity=dictt['table'][i]['quantity'], unit=dictt['table'][i]['unit'],
                                        rate=dictt['table'][i]['rate'], amount=(
-                                            float(dictt['table'][i]['width']) * float(
-                                        dictt['table'][i]['height']) * float(dictt['table'][i]['rate']) * float(
-                                        dictt['table'][i]['quantity'])))
+                                        float(dictt['table'][i]['width']) * float(
+                                    dictt['table'][i]['height']) * float(dictt['table'][i]['rate']) * float(
+                                    dictt['table'][i]['quantity'])))
                         except:
                             job = fjob(job_id=dictt['table'][i]['serial'], width=dictt['table'][i]['width'],
                                        height=dictt['table'][i]['height'], gst=dictt['table'][i]['gst'],
@@ -629,9 +636,9 @@ def modify_fchallan(request):
                                     '%a %d %Y %H:%M %p'), job_name=dictt['table'][i]['job_name'].strip(), item=itemm,
                                        quantity=dictt['table'][i]['quantity'], unit=dictt['table'][i]['unit'],
                                        rate=dictt['table'][i]['rate'], amount=(
-                                            float(dictt['table'][i]['width']) * float(
-                                        dictt['table'][i]['height']) * float(dictt['table'][i]['rate']) * float(
-                                        dictt['table'][i]['quantity'])))
+                                        float(dictt['table'][i]['width']) * float(
+                                    dictt['table'][i]['height']) * float(dictt['table'][i]['rate']) * float(
+                                    dictt['table'][i]['quantity'])))
                 sum += float(job.gst) + job.amount
                 job.save()
             if (int(sum) != int(float(challan.total_amount))):
@@ -650,7 +657,11 @@ def modify_fchallan(request):
             headers={'Message-ID': 'foo'},
             attachments=[pdf_mime]
         )
-        email.send()
+        try:
+            email.send()
+        except:
+            print("Unable to send the email")
+            pass
         http = HttpResponse(pdf, content_type='application/pdf')
         http['Content-Disposition'] = 'inline; filename="challan.pdf"'
         l = logs(user_name=str(request.user),
@@ -680,9 +691,10 @@ def modify_fchallan(request):
 
 @login_required
 def delete_fchallan(request):
-    fchallans = list(fchallan.objects.filter(deleted=False).filter(bill_no=None).order_by('challan_no'))
+    fchallans = list(
+        fchallan.objects.filter(deleted=False).filter(payment_no=None).filter(bill_no=None).order_by('challan_no'))
     check_user = Employee.objects.get(user=user.objects.get(username=request.user))
-    if (check_user.role != 'Admin'):
+    if check_user.role != 'Admin':
         return render(request, 'fchallan_delete.html',
                       {"fchallans": fchallans, 'error_message': "You dont have the permission to modify anything", })
     try:
@@ -694,9 +706,9 @@ def delete_fchallan(request):
                                                                 'error_message': "The item group name provided has not been added", })
             selected_choice.deleted = True
             selected_choice.save()
-            selected_choice.client_name.balance = selected_choice.client_name.balance + selected_choice.recieved
-            selected_choice.client_name.save()
-            fchallans = list(fchallan.objects.filter(deleted=False).filter(bill_no=None).order_by('challan_no'))
+            fchallans = list(
+                fchallan.objects.filter(deleted=False).filter(payment_no=None).filter(bill_no=None).order_by(
+                    'challan_no'))
             l = logs(user_name=str(request.user), message="Deleted a challan(Film) for " + str(
                 selected_choice.client_name.client_name) + " with challan no " + str(request.POST['challan_no']) + ".")
             l.save()
@@ -729,20 +741,11 @@ from reportlab.lib.pagesizes import A5
 from reportlab.pdfgen import canvas
 from reportlab.lib.units import mm
 from pchallan.models import pchallan
+from report.views import get_client_challan_balance
 
 
 def last_balance(cl_name):
-    pchals = pchallan.objects.filter(client_name=cl_name).filter(deleted=False).filter(bill_no__isnull=True)
-    fchals = fchallan.objects.filter(client_name=cl_name).filter(deleted=False).filter(bill_no__isnull=True)
-    cl = client.objects.get(pk=cl_name)
-    bal = 0
-    for each in pchals:
-        bal += each.total_amount - each.recieved
-    print('bal after pchals', bal)
-    for each in fchals:
-        bal += each.total_amount - each.recieved
-    print('bal after fchals', bal)
-    bal = bal - cl.balance
+    bal = get_client_challan_balance(cl_name)
     return bal
 
 
@@ -781,16 +784,16 @@ def fchallan_pdf(chal_no):
     cnvs.line(118 * mm, A5[1] - 530, 138 * mm, A5[1] - 530)
     cnvs.line(118 * mm, A5[1] - 529, 138 * mm, A5[1] - 529)
     cnvs.drawString(116 * mm - stringWidth('Total Balance', 'Helvetica', 10), A5[1] - 525, 'Total Balance')
-    cnvs.drawString(136 * mm - stringWidth(str(round(last_balance(challan.client_name.client_name) - (
-                challan.total_amount - challan.recieved) + challan.total_amount, 2)), 'Helvetica', 10), A5[1] - 525,
-                    str(round(last_balance(challan.client_name.client_name) - (
-                                challan.total_amount - challan.recieved) + challan.total_amount, 2)))
+    cnvs.drawString(136 * mm - stringWidth(str(round(last_balance(challan.client_name.client_name) - float(
+            challan.total_amount - challan.recieved) + float(challan.total_amount), 2)), 'Helvetica', 10), A5[1] - 525,
+                    str(round(last_balance(challan.client_name.client_name) - float(
+                            challan.total_amount - challan.recieved) + float(challan.total_amount), 2)))
     cnvs.line(118 * mm, A5[1] - 514, 138 * mm, A5[1] - 514)
     cnvs.drawString(116 * mm - stringWidth('Last Balance', 'Helvetica', 10), A5[1] - 510, 'Last Balance')
     cnvs.drawString(136 * mm - stringWidth(
-        str(round(last_balance(challan.client_name.client_name) - (challan.total_amount - challan.recieved), 2)),
+        str(round(last_balance(challan.client_name.client_name) - float(challan.total_amount - challan.recieved), 2)),
         'Helvetica', 10), A5[1] - 510, str(
-        round(last_balance(challan.client_name.client_name) - (challan.total_amount - challan.recieved), 2)))
+        round(last_balance(challan.client_name.client_name) - float(challan.total_amount - challan.recieved), 2)))
     cnvs.drawString(116 * mm - stringWidth('Balance', 'Helvetica', 10), A5[1] - 498, 'Balance')
     cnvs.drawString(136 * mm - stringWidth(str(round(challan.total_amount - challan.recieved, 2)), 'Helvetica', 10),
                     A5[1] - 498, str(round(challan.total_amount - challan.recieved, 2)))
@@ -847,6 +850,7 @@ def fchallan_pdf(chal_no):
 from reportlab.lib.pagesizes import A4
 from num2words import num2words
 from pchallan.models import pjob
+
 
 def bill_pdf(bil_no, original=False):
     bil = bill.objects.get(pk=bil_no)
@@ -1012,7 +1016,8 @@ def bill_pdf(bil_no, original=False):
                             (str(jobs[i].item.item_name) + ', Job- ' + str(jobs[i].job_name)))
         cnvs.drawString(97 * mm, A4[1] - first - (12 * i), jobs[i].item.group_name.hsn_code)
         try:
-            cnvs.drawString(112 * mm, A4[1] - first - (12 * i), str(round(jobs[i].width * jobs[i].height * jobs[i].quantity, 2)))
+            cnvs.drawString(112 * mm, A4[1] - first - (12 * i),
+                            str(round(jobs[i].width * jobs[i].height * jobs[i].quantity, 2)))
         except:
             cnvs.drawString(110 * mm, A4[1] - first - (12 * i), str(round(jobs[i].quantity, 2)))
         cnvs.drawString(132 * mm, A4[1] - first - (12 * i), str(jobs[i].unit))

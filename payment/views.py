@@ -78,19 +78,20 @@ def add_payment(request):
         with transaction.atomic():
             clientt = get_object_or_404(client, pk=dictt['client_name'])
             pay = payment(date=dictt['date'], client_name=clientt,
+                          is_bill_payment=False,
                           remaining_payment=float(dictt['remaining_payment']) - float(clientt.balance))
             pay.save()
             clientt.balance = dictt['remaining_payment']
             clientt.save()
             summ_of_challans = 0
             for each in dictt['table']:
-                if (each['type'] == 'Printout'):
+                if each['type'] == 'Printout':
                     pchal = get_object_or_404(pchallan, pk=each['challan_no'])
                     pchal.recieved = pchal.total_amount
                     summ_of_challans += pchal.total_amount
                     pchal.payment_no = pay
                     pchal.save()
-                if (each['type'] == 'Film'):
+                if each['type'] == 'Film':
                     fchal = get_object_or_404(fchallan, pk=each['challan_no'])
                     fchal.recieved = fchal.total_amount
                     summ_of_challans += fchal.total_amount
@@ -163,7 +164,7 @@ def print_payment(request):
 def delete_payment(request):
     payments = list(payment.objects.all())
     check_user = Employee.objects.get(user=user.objects.get(username=request.user))
-    if (check_user.role != 'Admin'):
+    if check_user.role != 'Admin':
         return render(request, 'payment_delete.html',
                       {"payments": payments, 'error_message': "You dont have the permission to modify anything", })
     try:
@@ -189,8 +190,12 @@ def delete_payment(request):
                 return render(request, 'payment_delete.html', {"payments": payments,
                                                                'error_message': "The item group name provided has not been added", })
             clientt = selected_choice.client_name
-            clientt.balance = clientt.balance - selected_choice.remaining_payment
-            clientt.save()
+            if selected_choice.is_bill_payment:
+                clientt.bill_balance = clientt.bill_balance - selected_choice.remaining_payment
+                clientt.save()
+            else:
+                clientt.balance = clientt.balance - selected_choice.remaining_payment
+                clientt.save()
             selected_choice.delete()
             payments = list(payment.objects.all())
             l = logs(user_name=str(request.user),
@@ -200,25 +205,23 @@ def delete_payment(request):
             return render(request, 'payment_delete.html',
                           {"payments": payments, 'success_message': "Item Group deleted successfully", })
     except Exception as e:
-        raise
-        print(e)
-        print(e.__class__.__name__)
-        if (str(e.__class__.__name__) == 'DataError'):
+        if str(e.__class__.__name__) == 'DataError':
             return render(request, 'payment_delete.html',
                           {"payments": payments, 'error_message': "Please provide the data correctly", })
-        if (str(e.__class__.__name__) == 'ValidationError'):
+        if str(e.__class__.__name__) == 'ValidationError':
             return render(request, 'payment_delete.html',
                           {"payments": payments, 'error_message': "Please provide the data correctly", })
         else:
             return render(request, 'payment_delete.html',
                           {"payments": payments, 'error_message': "Some error occured", })
 
+
 @login_required
 def payment_display(request):
     payments = list(payment.objects.order_by('payment_no'))
     for pay in payments:
-        chal1 = fchallan.objects.filter(payment_no=pay.payment_no).filter(bill_no__isnull = True)
-        chal2 = pchallan.objects.filter(payment_no=pay.payment_no).filter(bill_no__isnull = True)
+        chal1 = fchallan.objects.filter(payment_no=pay.payment_no).filter(bill_no__isnull=True)
+        chal2 = pchallan.objects.filter(payment_no=pay.payment_no).filter(bill_no__isnull=True)
         bills = bill.objects.filter(payment_no=pay.payment_no)
         for chal in chal1:
             chal.challan_no = str(chal.challan_no) + ' - F'
@@ -244,6 +247,7 @@ def payment_display(request):
         pay.tamount = amount_sum
     clients = list(client.objects.all().order_by('client_name'))
     return render(request, "payment_get.html", {"payments": payments, "clients": clients})
+
 
 @login_required
 def filter_date(request):
@@ -251,8 +255,8 @@ def filter_date(request):
         payment.objects.filter(date__range=(request.POST['from'], request.POST['to'])).order_by(
             'payment_no'))
     for pay in payments:
-        chal1 = fchallan.objects.filter(payment_no=pay.payment_no).filter(bill_no__isnull = True)
-        chal2 = pchallan.objects.filter(payment_no=pay.payment_no).filter(bill_no__isnull = True)
+        chal1 = fchallan.objects.filter(payment_no=pay.payment_no).filter(bill_no__isnull=True)
+        chal2 = pchallan.objects.filter(payment_no=pay.payment_no).filter(bill_no__isnull=True)
         bills = bill.objects.filter(payment_no=pay.payment_no)
         for chal in chal1:
             chal.challan_no = str(chal.challan_no) + ' - F'
@@ -279,12 +283,13 @@ def filter_date(request):
     clients = list(client.objects.all().order_by('client_name'))
     return render(request, "payment_get.html", {"payments": payments, "clients": clients})
 
+
 @login_required
 def filter_client(request):
     payments = list(payment.objects.filter(client_name=request.POST['client_name']).order_by('payment_no'))
     for pay in payments:
-        chal1 = fchallan.objects.filter(payment_no=pay.payment_no).filter(bill_no__isnull = True)
-        chal2 = pchallan.objects.filter(payment_no=pay.payment_no).filter(bill_no__isnull = True)
+        chal1 = fchallan.objects.filter(payment_no=pay.payment_no).filter(bill_no__isnull=True)
+        chal2 = pchallan.objects.filter(payment_no=pay.payment_no).filter(bill_no__isnull=True)
         bills = bill.objects.filter(payment_no=pay.payment_no)
         for chal in chal1:
             chal.challan_no = str(chal.challan_no) + ' - F'
@@ -310,6 +315,7 @@ def filter_client(request):
         pay.tamount = amount_sum
     clients = list(client.objects.all().order_by('client_name'))
     return render(request, "payment_get.html", {"payments": payments, "clients": clients})
+
 
 @login_required
 def payment_add_bill(request):
@@ -329,7 +335,7 @@ def get_challans_bill(request):
     result_list = sorted(bills, key=lambda instance: instance.date)
     amount = float(request.POST['amount'])
     cl = client.objects.get(client_name=request.POST['client'])
-    amount += float(cl.balance)
+    amount += float(cl.bill_balance)
     summ = 0
     for each in result_list:
         each.checked = False
@@ -360,7 +366,7 @@ def add_payment_bill(request):
                     1]
             table.append(row)
         dictt['table'] = table
-        if (not (dictt['check_no'] == '' and dictt['bank_name'] == '' and dictt['check_date'] == '')):
+        if not (dictt['check_no'] == '' and dictt['bank_name'] == '' and dictt['check_date'] == ''):
             pays = payment.objects.filter(client_name=dictt['client_name'])
             pays = [each.check_no for each in pays]
             if (dictt['check_no'] in pays):
@@ -368,23 +374,18 @@ def add_payment_bill(request):
                                                                  'error_message': "Check no provided is matching with an old check no", })
         with transaction.atomic():
             clientt = get_object_or_404(client, pk=dictt['client_name'])
-            if (dictt['check_no'] == '' and dictt['bank_name'] == '' and dictt['check_date'] == ''):
-                pay = payment(date=dictt['date'], client_name=clientt,
-                              remaining_payment=float(dictt['remaining_payment']) - float(clientt.balance),
+            if dictt['check_no'] == '' and dictt['bank_name'] == '' and dictt['check_date'] == '':
+                pay = payment(date=dictt['date'], client_name=clientt, is_bill_payment=True,
+                              remaining_payment=float(dictt['remaining_payment']) - float(clientt.bill_balance),
                               pay_type='CASH', check_no=None, bank_name=None, check_date=None)
             else:
-                pay = payment(date=dictt['date'], client_name=clientt,
-                              remaining_payment=float(dictt['remaining_payment']) - float(clientt.balance),
+                pay = payment(date=dictt['date'], client_name=clientt, is_bill_payment=True,
+                              remaining_payment=float(dictt['remaining_payment']) - float(clientt.bill_balance),
                               pay_type='CHECK', check_no=dictt['check_no'], bank_name=dictt['bank_name'],
                               check_date=dictt['check_date'])
             pay.save()
-            clientt.balance = dictt['remaining_payment']
+            clientt.bill_balance = dictt['remaining_payment']
             clientt.save()
-            try:
-                print("bill no ", pay.payment_no)
-            except:
-                pass
-            # challan.delete()
             summ = 0
             for each in dictt['table']:
                 bil = get_object_or_404(bill, pk=each['bill_no'])

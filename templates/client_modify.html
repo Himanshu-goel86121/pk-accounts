@@ -64,6 +64,14 @@
 					<input autocomplete="off" type="text" class="form-control" value="0" name="balance" id="balance" placeholder="Balance" required readonly>
 					{% endif %}
 				</div>
+				<label class="control-label col-md-2" style = "font-weight: bold;" for="bill_balance">Bill Balance:</label>
+				<div class="col-md-4">
+				    {% if client_grp %}
+					<input autocomplete="off" type="text" class="form-control" value = "{{client_grp.bill_balance}}" name="bill_balance" id="bill_balance" placeholder="Bill Balance" required readonly>
+					{% else %}
+					<input autocomplete="off" type="text" class="form-control" value="0" name="bill_balance" id="bill_balance" placeholder="Bill Balance" required readonly>
+					{% endif %}
+				</div>
 			</div>
 			<div class="form-group row">
 				<label class="control-label col-md-2" style = "font-weight: bold;" for="address">Address:</label>

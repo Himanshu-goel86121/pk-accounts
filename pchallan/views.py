@@ -37,7 +37,8 @@ def pchallan_add(request):
 
 @login_required
 def pchallan_delete(request):
-    pchallans = pchallan.objects.filter(deleted=False).filter(bill_no=None).order_by('challan_no')
+    pchallans = pchallan.objects.filter(deleted=False).filter(payment_no=None).filter(bill_no=None).order_by(
+        'challan_no')
     pchallans_json = serializers.serialize('json', pchallans)
     return render(request, "pchallan_delete.html", {"pchallans": list(pchallans), "pchallans_json": pchallans_json})
 
@@ -123,7 +124,8 @@ def pchallan_get(request):
         clients = list(client.objects.all().order_by('client_name'))
         dt = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         pchallans = list(pchallan.objects.order_by('challan_no'))
-        filtered_pchallans = pchallan.objects.filter(client_name=request.POST['client_name_filter']).order_by("-challan_no")[
+        filtered_pchallans = pchallan.objects.filter(client_name=request.POST['client_name_filter']).order_by(
+            "-challan_no")[
                              :5]
         for filtered_pchallan in filtered_pchallans:
             filtered_pchallan.date = filtered_pchallan.date.strftime('%Y-%m-%d %H:%M:%S')
@@ -256,7 +258,11 @@ def add_pchallan(request):
             headers={'Message-ID': 'foo'},
             attachments=[pdf_mime]
         )
-        email.send()
+        try:
+            email.send()
+        except:
+            print("Unable to send the email")
+            pass
         http = HttpResponse(pdf, content_type='application/pdf')
         http['Content-Disposition'] = 'inline; filename="challan.pdf"'
         l = logs(user_name=str(request.user),
@@ -351,7 +357,11 @@ def add_bill(request):
             headers={'Message-ID': 'foo'},
             attachments=[pdf_mime]
         )
-        email.send()
+        try:
+            email.send()
+        except:
+            print("Unable to send the email")
+            pass
         http = HttpResponse(pdf, content_type='application/pdf')
         http['Content-Disposition'] = 'inline; filename="challan.pdf"'
         l = logs(user_name=str(request.user),
@@ -483,7 +493,11 @@ def modify_pchallan(request):
             headers={'Message-ID': 'foo'},
             attachments=[pdf_mime]
         )
-        email.send()
+        try:
+            email.send()
+        except:
+            print("Unable to send the email")
+            pass
         http = HttpResponse(pdf, content_type='application/pdf')
         http['Content-Disposition'] = 'inline; filename="challan.pdf"'
         l = logs(user_name=str(request.user),
@@ -628,7 +642,11 @@ def bill_modify_pchallan(request):
             headers={'Message-ID': 'foo'},
             attachments=[pdf_mime]
         )
-        email.send()
+        try:
+            email.send()
+        except:
+            print("Unable to send the email")
+            pass
         http = HttpResponse(pdf, content_type='application/pdf')
         http['Content-Disposition'] = 'inline; filename="challan.pdf"'
         l = logs(user_name=str(request.user),
@@ -658,9 +676,10 @@ def bill_modify_pchallan(request):
 
 @login_required
 def delete_pchallan(request):
-    pchallans = list(pchallan.objects.filter(deleted=False).filter(bill_no=None).order_by('challan_no'))
+    pchallans = list(
+        pchallan.objects.filter(deleted=False).filter(payment_no=None).filter(bill_no=None).order_by('challan_no'))
     check_user = Employee.objects.get(user=user.objects.get(username=request.user))
-    if (check_user.role != 'Admin'):
+    if check_user.role != 'Admin':
         return render(request, 'pchallan_delete.html',
                       {"pchallans": pchallans, 'error_message': "You dont have the permission to modify anything", })
     try:
@@ -672,9 +691,9 @@ def delete_pchallan(request):
                                                                 'error_message': "The item group name provided has not been added", })
             selected_choice.deleted = True
             selected_choice.save()
-            selected_choice.client_name.balance = selected_choice.client_name.balance + selected_choice.recieved
-            selected_choice.client_name.save()
-            pchallans = list(pchallan.objects.filter(deleted=False).filter(bill_no=None).order_by('challan_no'))
+            pchallans = list(
+                pchallan.objects.filter(deleted=False).filter(payment_no=None).filter(bill_no=None).order_by(
+                    'challan_no'))
             pchallans_json = serializers.serialize('json', pchallans)
             l = logs(user_name=str(request.user), message="Deleted a challan(Print) for " + str(
                 selected_choice.client_name.client_name) + " with challan no " + str(request.POST['challan_no']) + ".")
@@ -695,18 +714,11 @@ def delete_pchallan(request):
                           {"pchallans": pchallans, 'error_message': "Some error occured", })
 
 
+from report.views import get_client_challan_balance
+
+
 def last_balance(cl_name):
-    pchals = pchallan.objects.filter(client_name=cl_name).filter(deleted=False)
-    fchals = fchallan.objects.filter(client_name=cl_name).filter(deleted=False)
-    cl = client.objects.get(pk=cl_name)
-    bal = 0
-    for each in pchals:
-        bal += each.total_amount - each.recieved
-    print('bal after pchals', bal)
-    for each in fchals:
-        bal += each.total_amount - each.recieved
-    print('bal after fchals', bal)
-    bal = bal - cl.balance
+    bal = get_client_challan_balance(cl_name)
     return bal
 
 
@@ -743,16 +755,16 @@ def pchallan_pdf(chal_no):
     cnvs.line(123 * mm, A5[1] - 530, 141 * mm, A5[1] - 530)
     cnvs.line(123 * mm, A5[1] - 529, 141 * mm, A5[1] - 529)
     cnvs.drawString(121 * mm - stringWidth('Total Balance', 'Helvetica', 10), A5[1] - 525, 'Total Balance')
-    cnvs.drawString(140 * mm - stringWidth(str(round(last_balance(challan.client_name.client_name) - (
-            challan.total_amount - challan.recieved) + challan.total_amount, 2)), 'Helvetica', 10), A5[1] - 525,
-                    str(round(last_balance(challan.client_name.client_name) - (
-                            challan.total_amount - challan.recieved) + challan.total_amount, 2)))
+    cnvs.drawString(140 * mm - stringWidth(str(round(last_balance(challan.client_name.client_name) - float(
+            challan.total_amount - challan.recieved) + float(challan.total_amount), 2)), 'Helvetica', 10), A5[1] - 525,
+                    str(round(last_balance(challan.client_name.client_name) - float(
+                            challan.total_amount - challan.recieved) + float(challan.total_amount), 2)))
     cnvs.line(123 * mm, A5[1] - 514, 141 * mm, A5[1] - 514)
     cnvs.drawString(121 * mm - stringWidth('Last Balance', 'Helvetica', 10), A5[1] - 510, 'Last Balance')
     cnvs.drawString(140 * mm - stringWidth(
-        str(round(last_balance(challan.client_name.client_name) - (challan.total_amount - challan.recieved), 2)),
+        str(round(last_balance(challan.client_name.client_name) - float(challan.total_amount - challan.recieved), 2)),
         'Helvetica', 10), A5[1] - 510, str(
-        round(last_balance(challan.client_name.client_name) - (challan.total_amount - challan.recieved), 2)))
+        round(last_balance(challan.client_name.client_name) - float(challan.total_amount - challan.recieved), 2)))
     cnvs.drawString(121 * mm - stringWidth('Balance', 'Helvetica', 10), A5[1] - 498, 'Balance')
     cnvs.drawString(140 * mm - stringWidth(str(round(challan.total_amount - challan.recieved, 2)), 'Helvetica', 10),
                     A5[1] - 498, str(round(challan.total_amount - challan.recieved, 2)))
@@ -852,7 +864,7 @@ def bill_pdf(bil_no, original=False):
     cnvs.setFont('Helvetica', 10)
     address = str(bil.client_name.address)
     address2 = ''
-    while (stringWidth(address, 'Helvetica', 10) > 250):
+    while stringWidth(address, 'Helvetica', 10) > 250:
         address2 = address2 + ' ' + address.split(' ')[-1]
         address = ' '.join(address.split(' ')[:-1])
     cnvs.drawString(12 * mm, A4[1] - 170, str(address))
@@ -909,7 +921,7 @@ def bill_pdf(bil_no, original=False):
     cnvs.drawString(11 * mm, A4[1] - 728, 'Account No.  2016201002902')
     cnvs.drawString(11 * mm, A4[1] - 716, 'Branch           Keshav Puram')
     cnvs.drawString(11 * mm, A4[1] - 704, 'Bank Name    Canara Bank')
-    if ('delhi' in bil.client_name.state.lower()):
+    if 'delhi' in bil.client_name.state.lower():
         cnvs.drawString(170 * mm - stringWidth('Total', 'Helvetica-Bold', 10), A4[1] - 664, 'Total')
         cnvs.drawString(170 * mm - stringWidth('SGST', 'Helvetica-Bold', 10), A4[1] - 682, 'SGST')
         cnvs.drawString(170 * mm - stringWidth('CGST', 'Helvetica-Bold', 10), A4[1] - 700, 'CGST')
@@ -976,7 +988,8 @@ def bill_pdf(bil_no, original=False):
                             (str(jobs[i].item.item_name) + ', Job- ' + str(jobs[i].job_name)))
         cnvs.drawString(97 * mm, A4[1] - first - (12 * i), jobs[i].item.group_name.hsn_code)
         try:
-            cnvs.drawString(112 * mm, A4[1] - first - (12 * i), str(round(jobs[i].width * jobs[i].height * jobs[i].quantity, 2)))
+            cnvs.drawString(112 * mm, A4[1] - first - (12 * i),
+                            str(round(jobs[i].width * jobs[i].height * jobs[i].quantity, 2)))
         except:
             cnvs.drawString(110 * mm, A4[1] - first - (12 * i), str(round(jobs[i].quantity, 2)))
         cnvs.drawString(132 * mm, A4[1] - first - (12 * i), str(jobs[i].unit))

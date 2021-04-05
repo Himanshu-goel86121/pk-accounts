@@ -63,7 +63,7 @@ def get_jobs(request):
 
 @login_required
 def bill_delete(request):
-    bills = list(bill.objects.filter(deleted=False).order_by('bill_no'))
+    bills = list(bill.objects.filter(deleted=False).filter(payment_no=None).order_by('bill_no'))
     bills_json = serializers.serialize('json', bills)
     return render(request, "bill_delete.html", {"bills": bills, "bills_json": bills_json})
 
@@ -178,11 +178,11 @@ def add_bill(request):
             # challan.delete()
             print(dictt['table'])
             for each in dictt['table']:
-                if (each['type'] == 'Printout'):
+                if each['type'] == 'Printout':
                     pchal = get_object_or_404(pchallan, pk=each['challan_no'])
                     pchal.bill_no = bil
                     pchal.save()
-                if (each['type'] == 'Film'):
+                if each['type'] == 'Film':
                     fchal = get_object_or_404(fchallan, pk=each['challan_no'])
                     fchal.bill_no = bil
                     fchal.save()
@@ -200,7 +200,11 @@ def add_bill(request):
             headers={'Message-ID': 'foo'},
             attachments=[pdf_mime]
         )
-        email.send()
+        try:
+            email.send()
+        except:
+            print("Unable to send the email")
+            pass
         http = HttpResponse(pdf, content_type='application/pdf')
         http['Content-Disposition'] = 'inline; filename="challan.pdf"'
         l = logs(user_name=str(request.user),
@@ -227,7 +231,7 @@ def add_bill(request):
 def delete_bill(request):
     bills = list(bill.objects.filter(deleted=False).filter(payment_no=None))
     check_user = Employee.objects.get(user=user.objects.get(username=request.user))
-    if (check_user.role != 'Admin'):
+    if check_user.role != 'Admin':
         return render(request, 'bill_delete.html',
                       {"bills": bills, 'error_message': "You dont have the permission to modify anything", })
     try:
@@ -239,7 +243,8 @@ def delete_bill(request):
                               {"bills": bills, 'error_message': "The item group name provided has not been added", })
             selected_choice.deleted = True
             selected_choice.save()
-            bills = list(bill.objects.filter(deleted=False).order_by('bill_no'))
+            bills = list(bill.objects.filter(deleted=False).filter(payment_no=None
+                                                                   ).order_by('bill_no'))
             chals = pchallan.objects.filter(bill_no=request.POST['bill_no'])
             for chal in chals:
                 chal.bill_no = None
@@ -253,14 +258,14 @@ def delete_bill(request):
             l.save()
             bills_json = serializers.serialize('json', bills)
             return render(request, "bill_delete.html", {"bills": bills, "bills_json": bills_json,
-                                                        'success_message': "Item Group deleted successfully"})
+                                                        'success_message': "Bill deleted successfully"})
     except Exception as e:
         print(e)
         print(e.__class__.__name__)
-        if (str(e.__class__.__name__) == 'DataError'):
+        if str(e.__class__.__name__) == 'DataError':
             return render(request, 'bill_delete.html',
                           {"bills": bills, 'error_message': "Please provide the data correctly", })
-        if (str(e.__class__.__name__) == 'ValidationError'):
+        if str(e.__class__.__name__) == 'ValidationError':
             return render(request, 'bill_delete.html',
                           {"bills": bills, 'error_message': "Please provide the data correctly", })
         else:
@@ -272,6 +277,7 @@ from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from reportlab.lib.units import mm
 from num2words import num2words
+
 
 def bill_pdf(bil_no, original=False):
     bil = bill.objects.get(pk=bil_no)
@@ -430,13 +436,14 @@ def bill_pdf(bil_no, original=False):
         cnvs.drawString(12 * mm, A4[1] - first - (12 * i), str(serial))
         try:
             cnvs.drawString(22 * mm, A4[1] - first - (12 * i), (
-                    str(jobs[i].item.item_name)))
+                str(jobs[i].item.item_name)))
         except:
             cnvs.drawString(22 * mm, A4[1] - first - (12 * i),
                             (str(jobs[i].item.item_name) + ', Job- ' + str(jobs[i].job_name)))
         cnvs.drawString(97 * mm, A4[1] - first - (12 * i), jobs[i].item.group_name.hsn_code)
         try:
-            cnvs.drawString(112 * mm, A4[1] - first - (12 * i), str(round(jobs[i].width * jobs[i].height * jobs[i].quantity, 2)))
+            cnvs.drawString(112 * mm, A4[1] - first - (12 * i),
+                            str(round(jobs[i].width * jobs[i].height * jobs[i].quantity, 2)))
         except:
             cnvs.drawString(110 * mm, A4[1] - first - (12 * i), str(round(jobs[i].quantity, 2)))
         cnvs.drawString(132 * mm, A4[1] - first - (12 * i), str(jobs[i].unit))
