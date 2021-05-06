@@ -13,4 +13,5 @@ urlpatterns = [
     path(r'party_challan_ledger_get/', views.party_challan_ledger_get, name='party_challan_ledger_get'),
     path(r'party_bill_ledger_get/', views.party_bill_ledger_get, name='party_bill_ledger_get'),
     path(r'due_list_bill_get/', views.due_list_bill_get, name='due_list_bill_get'),
+    path(r'sales_register_get/', views.sales_register_get, name='sales_register_get'),
 ]

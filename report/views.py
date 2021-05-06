@@ -9,6 +9,7 @@ from client.models import client
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import render
+from bill.models import bill
 from fchallan.models import fchallan, fjob
 from itertools import chain
 from payment.models import payment
@@ -26,6 +27,74 @@ def report_page(request):
     clients = list(client.objects.all().order_by('client_name'))
     return render(request, "reports.html", {"datetime": datetime, "clients": clients})
 
+@login_required
+def sales_register_get(request):
+    challans = bill.objects.filter(deleted=False).filter(date__range=(request.POST['from'], request.POST['to']))
+    challans = sorted(challans, key=lambda instance: instance.bill_no)
+    buffer = BytesIO()
+    cnvs = canvas.Canvas(buffer, pagesize=A4)
+    cnvs.setLineWidth(.6)
+    from math import ceil
+    a = 0
+    last_row = ['Total', '', '', 0.0, 0.0, 0.0, 0.0]
+    for k in range(ceil(len(challans) / 50.0)):
+        cnvs.setFont('Helvetica', 12)
+        cnvs.translate(mm, mm)
+        cnvs.rect(10 * mm, 10 * mm, 190 * mm, 247 * mm, stroke=1, fill=0)
+        cnvs.setFont('Helvetica-Bold', 14)
+        cnvs.drawString((A4[0] - stringWidth('Due List', 'Helvetica-Bold', 14)) / 2, A4[1] - 40, 'Sales Register')
+        cnvs.setFont('Helvetica', 8)
+        cnvs.line(30 * mm, A4[1] - 114, 30 * mm, A4[1] - 813)
+        cnvs.line(55 * mm, A4[1] - 114, 55 * mm, A4[1] - 813)
+        cnvs.line(100 * mm, A4[1] - 114, 100 * mm, A4[1] - 813)
+        cnvs.line(125 * mm, A4[1] - 114, 125 * mm, A4[1] - 813)
+        cnvs.line(150 * mm, A4[1] - 114, 150 * mm, A4[1] - 813)
+        cnvs.line(175 * mm, A4[1] - 114, 175 * mm, A4[1] - 813)
+        cnvs.drawString(13 * mm, A4[1] - 126, 'Bill No')
+        cnvs.drawString(33 * mm, A4[1] - 126, 'Date')
+        cnvs.drawString(58 * mm, A4[1] - 126, 'Client')
+        cnvs.drawString(105 * mm, A4[1] - 126, 'Sale Amount')
+        cnvs.drawString(130 * mm, A4[1] - 126, 'CGST')
+        cnvs.drawString(155 * mm, A4[1] - 126, 'SGST')
+        cnvs.drawString(180 * mm, A4[1] - 126, 'IGST')
+        first = 143
+        for i in range(50 * a, 50 * (a + 1)):
+            try:
+                cnvs.drawString(13 * mm, A4[1] - first - (i - 50 * a) * 13, str(challans[i].bill_no))
+                cnvs.drawString(33 * mm, A4[1] - first - (i - 50 * a) * 13,
+                                str(challans[i].date.strftime('%d/%m/%Y')), )
+                cnvs.drawString(58 * mm, A4[1] - first - (i - 50 * a) * 13, str(challans[i].client_name.client_name))
+                cnvs.drawString(105 * mm, A4[1] - first - (i - 50 * a) * 13, str(challans[i].gross_amount))
+                last_row[3] += float(challans[i].gross_amount)
+                if ('delhi' in challans[i].client_name.state.lower()):
+                    cnvs.drawString(130 * mm, A4[1] - first - (i - 50 * a) * 13, str(challans[i].gst / 2))
+                    last_row[4] += float(challans[i].gst / 2)
+                    last_row[5] += float(challans[i].gst / 2)
+                    cnvs.drawString(155 * mm, A4[1] - first - (i - 50 * a) * 13, str(challans[i].gst / 2))
+                    cnvs.drawString(180 * mm, A4[1] - first - (i - 50 * a) * 13, str(0))
+                else:
+                    cnvs.drawString(130 * mm, A4[1] - first - (i - 50 * a) * 13, str(0))
+                    cnvs.drawString(155 * mm, A4[1] - first - (i - 50 * a) * 13, str(0))
+                    last_row[6] += float(challans[i].gst)
+                    cnvs.drawString(180 * mm, A4[1] - first - (i - 50 * a) * 13, str(challans[i].gst))
+            except:
+                break
+        if (k == (ceil(len(challans) / 50.0) - 1)):
+            cnvs.drawString(13 * mm, A4[1] - first - (i - 50 * a) * 13, str(last_row[0]))
+            cnvs.drawString(33 * mm, A4[1] - first - (i - 50 * a) * 13, str(last_row[1]), )
+            cnvs.drawString(58 * mm, A4[1] - first - (i - 50 * a) * 13, str(last_row[2]))
+            cnvs.drawString(105 * mm, A4[1] - first - (i - 50 * a) * 13, str(round(last_row[3], 2)))
+            cnvs.drawString(130 * mm, A4[1] - first - (i - 50 * a) * 13, str(round(last_row[4], 2)))
+            cnvs.drawString(155 * mm, A4[1] - first - (i - 50 * a) * 13, str(round(last_row[5], 2)))
+            cnvs.drawString(180 * mm, A4[1] - first - (i - 50 * a) * 13, str(round(last_row[6], 2)))
+        a += 1
+        cnvs.showPage()
+    cnvs.save()
+    pdf = buffer.getvalue()
+    buffer.close()
+    http = HttpResponse(pdf, content_type='application/pdf')
+    http['Content-Disposition'] = 'inline; filename="challan.pdf"'
+    return http
 
 @login_required
 def b2b_report_get(request):

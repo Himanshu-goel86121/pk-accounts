@@ -96,9 +96,9 @@ WSGI_APPLICATION = 'pkscan.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'accounts',
+        'NAME': 'accounts_2021',
         'USER': 'postgres',
-        'PASSWORD': 'postgres',
+        'PASSWORD': '86121',
         'HOST': 'localhost',
         'PORT': '5432',
     }
